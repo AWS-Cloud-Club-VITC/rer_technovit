@@ -30,16 +30,16 @@ export default function Navbar({ isAuthenticated, teamName, onLogout }: NavbarPr
 
         {/* Navigation Links */}
         <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-[#A7AFBC]">
-          <Link href="#about" className="hover:text-[#F5F5F5] transition-colors">
+          <Link href="/#about" className="hover:text-[#F5F5F5] transition-colors">
             Concept
           </Link>
-          <Link href="#flow" className="hover:text-[#F5F5F5] transition-colors">
+          <Link href="/#event-flow" className="hover:text-[#F5F5F5] transition-colors">
             Event Flow
           </Link>
-          <Link href="#rounds" className="hover:text-[#F5F5F5] transition-colors">
+          <Link href="/#rounds" className="hover:text-[#F5F5F5] transition-colors">
             Three Rounds
           </Link>
-          <Link href="#rules" className="hover:text-[#F5F5F5] transition-colors">
+          <Link href="/#rules" className="hover:text-[#F5F5F5] transition-colors">
             Rules & Scoring
           </Link>
         </nav>

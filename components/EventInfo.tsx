@@ -53,7 +53,7 @@ export default function EventInfo() {
         </div>
 
         {/* 5-Step Event Flow */}
-        <div id="flow" className="mt-12">
+        <div id="event-flow" className="mt-12">
           <div className="flex items-center justify-between mb-8">
             <h3 className="text-xl font-bold text-[#F5F5F5] flex items-center gap-2">
               <span className="text-[#A855F7]">{"///"}</span> Core Event Flow
