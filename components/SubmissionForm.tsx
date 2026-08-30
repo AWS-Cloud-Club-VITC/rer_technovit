@@ -123,15 +123,15 @@ export default function SubmissionForm({ onSuccess }: SubmissionFormProps) {
   };
 
   return (
-    <div className="cyber-card rounded-xl p-6 sm:p-8">
+    <div className="cyber-card rounded-2xl p-6 sm:p-8 transition-colors duration-200">
       {/* Header */}
-      <div className="flex items-center gap-3 pb-6 border-b border-[#343B47]/80">
-        <div className="w-10 h-10 rounded-lg bg-[#151A23] border border-[#343B47] flex items-center justify-center">
-          <UploadCloud className="w-5 h-5 text-[#A855F7]" />
+      <div className="flex items-center gap-3.5 pb-6 border-b border-[var(--border-subtle)]">
+        <div className="w-10 h-10 rounded-xl bg-[var(--accent-surface)] border border-[var(--accent-border)] flex items-center justify-center">
+          <UploadCloud className="w-5 h-5 text-[var(--accent-text)]" />
         </div>
         <div>
-          <h3 className="text-lg font-bold text-[#F5F5F5]">New Project Submission</h3>
-          <p className="text-xs text-[#A7AFBC]">
+          <h3 className="text-lg font-bold text-[var(--foreground)]">New Project Submission</h3>
+          <p className="text-xs text-[var(--foreground-muted)]">
             Upload a revised architectural PDF and updated GitHub repository link.
           </p>
         </div>
@@ -140,7 +140,7 @@ export default function SubmissionForm({ onSuccess }: SubmissionFormProps) {
       <form onSubmit={handleSubmit} className="mt-6 space-y-6">
         {/* Error Alert */}
         {errorMessage && (
-          <div className="p-4 rounded-lg bg-[#EF4444]/10 border border-[#EF4444]/40 flex items-start gap-3 text-xs text-[#EF4444]">
+          <div className="p-4 rounded-xl bg-[var(--status-error-bg)] border border-[var(--status-error-border)] flex items-start gap-3 text-xs text-[var(--status-error-text)]">
             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
             <span>{errorMessage}</span>
           </div>
@@ -148,7 +148,7 @@ export default function SubmissionForm({ onSuccess }: SubmissionFormProps) {
 
         {/* Success Alert */}
         {successMessage && (
-          <div className="p-4 rounded-lg bg-[#22C55E]/10 border border-[#22C55E]/40 flex items-start gap-3 text-xs text-[#22C55E]">
+          <div className="p-4 rounded-xl bg-[var(--status-ready-bg)] border border-[var(--status-ready-border)] flex items-start gap-3 text-xs text-[var(--status-ready-text)]">
             <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
             <span>{successMessage}</span>
           </div>
@@ -156,12 +156,12 @@ export default function SubmissionForm({ onSuccess }: SubmissionFormProps) {
 
         {/* GitHub Repository URL Input */}
         <div>
-          <label className="block text-xs font-mono font-medium text-[#F5F5F5] mb-2 flex items-center justify-between">
+          <label className="block text-xs font-mono font-medium text-[var(--foreground)] mb-2 flex items-center justify-between">
             <span className="flex items-center gap-2">
-              <GithubIcon className="w-4 h-4 text-[#A855F7]" />
-              <span>GitHub Repository URL <span className="text-[#EF4444]">*</span></span>
+              <GithubIcon className="w-4 h-4 text-[var(--accent-text)]" />
+              <span>GitHub Repository URL <span className="text-[var(--status-error-text)]">*</span></span>
             </span>
-            <span className="text-[11px] text-[#A7AFBC]">https://github.com/org/repo</span>
+            <span className="text-[11px] text-[var(--foreground-muted)]">https://github.com/org/repo</span>
           </label>
           <input
             type="url"
@@ -170,18 +170,18 @@ export default function SubmissionForm({ onSuccess }: SubmissionFormProps) {
             onChange={(e) => setGithubUrl(e.target.value)}
             placeholder="https://github.com/your-team/reverse-engineering-roulette"
             disabled={isSubmitting}
-            className="w-full px-4 py-3 rounded-lg bg-[#151A23] border border-[#343B47] text-sm text-[#F5F5F5] placeholder-[#A7AFBC]/50 focus:outline-none focus:border-[#A855F7] focus:ring-1 focus:ring-[#A855F7] disabled:opacity-50 transition-all font-mono"
+            className="w-full px-4 py-3 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)] text-sm text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:border-[var(--input-focus)] focus:ring-2 focus:ring-[var(--accent)]/20 disabled:opacity-50 transition-all font-mono shadow-2xs"
           />
         </div>
 
         {/* PDF File Upload */}
         <div>
-          <label className="block text-xs font-mono font-medium text-[#F5F5F5] mb-2 flex items-center justify-between">
+          <label className="block text-xs font-mono font-medium text-[var(--foreground)] mb-2 flex items-center justify-between">
             <span className="flex items-center gap-2">
-              <FileText className="w-4 h-4 text-[#A855F7]" />
-              <span>Architectural / Design PDF <span className="text-[#EF4444]">*</span></span>
+              <FileText className="w-4 h-4 text-[var(--accent-text)]" />
+              <span>Architectural / Design PDF <span className="text-[var(--status-error-text)]">*</span></span>
             </span>
-            <span className="text-[11px] text-[#A7AFBC]">Max {APP_CONFIG.maxPdfSizeDisplay}</span>
+            <span className="text-[11px] text-[var(--foreground-muted)] font-mono">Max {APP_CONFIG.maxPdfSizeDisplay}</span>
           </label>
 
           <input
@@ -197,27 +197,27 @@ export default function SubmissionForm({ onSuccess }: SubmissionFormProps) {
           {!pdfFile ? (
             <label
               htmlFor="pdf-upload-input"
-              className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-[#343B47] hover:border-[#A855F7] rounded-lg bg-[#151A23]/60 cursor-pointer group transition-all"
+              className="flex flex-col items-center justify-center p-7 border-2 border-dashed border-[var(--input-border)] hover:border-[var(--accent)] rounded-xl bg-[var(--surface-secondary)] hover:bg-[var(--accent-surface)] cursor-pointer group transition-all"
             >
-              <UploadCloud className="w-8 h-8 text-[#A7AFBC] group-hover:text-[#A855F7] transition-colors mb-2" />
-              <span className="text-xs font-semibold text-[#F5F5F5] group-hover:text-[#B45CFF]">
+              <UploadCloud className="w-9 h-9 text-[var(--foreground-muted)] group-hover:text-[var(--accent-text)] group-hover:scale-110 transition-all mb-2.5" />
+              <span className="text-xs font-semibold text-[var(--foreground)] group-hover:text-[var(--accent-text)]">
                 Click or drag PDF file here to upload
               </span>
-              <span className="text-[11px] font-mono text-[#A7AFBC] mt-1">
+              <span className="text-[11px] font-mono text-[var(--foreground-muted)] mt-1">
                 Accepted: .pdf only (Max {APP_CONFIG.maxPdfSizeDisplay})
               </span>
             </label>
           ) : (
-            <div className="p-4 rounded-lg bg-[#151A23] border border-[#343B47] flex items-center justify-between">
+            <div className="p-4 rounded-xl bg-[var(--surface-secondary)] border border-[var(--border)] flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded bg-[#1C222C] border border-[#343B47] flex items-center justify-center">
-                  <FileText className="w-4 h-4 text-[#22C55E]" />
+                <div className="w-9 h-9 rounded-lg bg-[var(--surface)] border border-[var(--border)] shadow-2xs flex items-center justify-center">
+                  <FileText className="w-4 h-4 text-[var(--status-ready-text)]" />
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-[#F5F5F5] truncate max-w-[240px] sm:max-w-md">
+                  <div className="text-xs font-bold text-[var(--foreground)] truncate max-w-[240px] sm:max-w-md">
                     {pdfFile.name}
                   </div>
-                  <div className="text-[10px] font-mono text-[#A7AFBC]">
+                  <div className="text-[10px] font-mono text-[var(--foreground-muted)]">
                     {formatFileSize(pdfFile.size)} • Ready for upload
                   </div>
                 </div>
@@ -227,7 +227,7 @@ export default function SubmissionForm({ onSuccess }: SubmissionFormProps) {
                 type="button"
                 onClick={handleRemoveFile}
                 disabled={isSubmitting}
-                className="p-1.5 rounded bg-[#1C222C] hover:bg-[#EF4444]/20 text-[#A7AFBC] hover:text-[#EF4444] transition-colors"
+                className="p-1.5 rounded-lg bg-[var(--surface)] border border-[var(--border)] hover:bg-[var(--status-error-bg)] text-[var(--foreground-muted)] hover:text-[var(--status-error-text)] transition-colors"
                 title="Remove file"
               >
                 <X className="w-4 h-4" />
@@ -241,7 +241,7 @@ export default function SubmissionForm({ onSuccess }: SubmissionFormProps) {
           <button
             type="submit"
             disabled={isSubmitting || !pdfFile || !githubUrl}
-            className="w-full py-3.5 px-6 rounded-lg bg-gradient-to-r from-[#A855F7] to-[#9333EA] hover:from-[#B45CFF] hover:to-[#A855F7] text-[#151A23] font-bold text-sm tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-[#A855F7]/25"
+            className="w-full py-3.5 px-6 rounded-xl bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-bold text-sm tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg hover:scale-[1.01] active:scale-[0.99]"
           >
             {isSubmitting ? (
               <>
@@ -255,7 +255,7 @@ export default function SubmissionForm({ onSuccess }: SubmissionFormProps) {
               </>
             )}
           </button>
-          <p className="text-center text-[11px] font-mono text-[#A7AFBC] mt-2.5">
+          <p className="text-center text-[11px] font-mono text-[var(--foreground-muted)] mt-2.5">
             Note: Submitting a new revision preserves past records while designating this upload as the active version for judging.
           </p>
         </div>

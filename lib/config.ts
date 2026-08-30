@@ -2,7 +2,7 @@ export const EVENT_CONFIG = {
   name: "Reverse Engineering Roulette",
   tagline: "See it. Remember it. Reverse it.",
   date: "31 August 2026",
-  venue: "Kamaraj Auditorium",
+  venue: "AB3 713",
   flow: ["Observe", "Explore", "Remember", "Reconstruct", "Evaluate"],
   rounds: [
     {

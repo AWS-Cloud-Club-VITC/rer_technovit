@@ -37,6 +37,7 @@ const ROUND_DETAILS = [
     icon: Shuffle,
     focus: EVENT_CONFIG.rounds[2].focus,
     description: EVENT_CONFIG.rounds[2].description,
+    isSpecial: true,
     criteria: [
       "Randomized Twist Implementation",
       "Speed Under Sudden Constraints",
@@ -48,17 +49,17 @@ const ROUND_DETAILS = [
 
 export default function Rounds() {
   return (
-    <section id="rounds" className="py-16 sm:py-24 border-b border-[#343B47]/60 relative">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="rounds" className="py-16 sm:py-24 border-b border-[var(--border)] relative overflow-hidden transition-colors duration-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-[#1C222C] border border-[#343B47] text-xs font-mono text-[#A855F7] mb-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-[var(--accent-surface)] border border-[var(--accent-border)] text-xs font-mono text-[var(--accent-text)] mb-3 shadow-sm font-semibold">
             <span>[ COMPETITION STRUCTURE ]</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#F5F5F5] tracking-tight">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-[var(--foreground)] tracking-tight">
             The Three Rounds
           </h2>
-          <p className="mt-4 text-[#A7AFBC] text-sm sm:text-base leading-relaxed">
+          <p className="mt-4 text-[var(--foreground-muted)] text-sm sm:text-base leading-relaxed">
             Progression through each round demands deep observation, sharp technical execution, and agility under pressure.
           </p>
         </div>
@@ -70,43 +71,56 @@ export default function Rounds() {
             return (
               <div
                 key={round.number}
-                className="cyber-card rounded-xl p-6 flex flex-col justify-between relative group hover:border-[#A855F7]/60 transition-all"
+                className={`rounded-2xl p-6 sm:p-7 flex flex-col justify-between relative group transition-all duration-300 ${
+                  round.isSpecial
+                    ? "cyber-card-roulette"
+                    : "cyber-card"
+                }`}
               >
                 {/* Round Header */}
                 <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="px-2.5 py-1 rounded text-[11px] font-mono tracking-wider bg-[#151A23] border border-[#343B47] text-[#B45CFF]">
+                  <div className="flex items-center justify-between mb-5">
+                    <span className="px-2.5 py-1 rounded-md text-[11px] font-mono font-semibold tracking-wider bg-[var(--accent-surface)] border border-[var(--accent-border)] text-[var(--accent-text)]">
                       {round.tag}
                     </span>
-                    <div className="w-10 h-10 rounded-lg bg-[#151A23] border border-[#343B47] flex items-center justify-center group-hover:border-[#A855F7] transition-colors">
-                      <Icon className="w-5 h-5 text-[#A855F7]" />
+                    <div className="w-10 h-10 rounded-xl bg-[var(--accent-surface)] border border-[var(--accent-border)] flex items-center justify-center group-hover:border-[var(--accent)] transition-all">
+                      <Icon className="w-5 h-5 text-[var(--accent-text)] group-hover:text-[var(--accent-hover)] transition-colors" />
                     </div>
                   </div>
 
-                  <div className="text-xs font-mono text-[#A855F7] mb-1">ROUND 0{round.number}</div>
-                  <h3 className="text-2xl font-bold text-[#F5F5F5] tracking-wide mb-2">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="text-xs font-mono text-[var(--accent-text)] font-bold">ROUND 0{round.number}</span>
+                    {round.isSpecial && (
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[var(--accent-surface)] border border-[var(--accent-border)] text-[var(--accent-text)] font-semibold">
+                        FLAGSHIP
+                      </span>
+                    )}
+                  </div>
+
+                  <h3 className="text-2xl font-bold text-[var(--foreground)] tracking-wide mb-3 group-hover:text-[var(--accent-text)] transition-colors">
                     {round.name}
                   </h3>
 
-                  <div className="mb-4 inline-block text-xs font-mono text-[#22C55E] bg-[#22C55E]/10 px-2 py-0.5 rounded border border-[#22C55E]/20">
-                    Focus: {round.focus}
+                  <div className="mb-4 inline-flex items-center gap-1.5 text-xs font-mono text-[var(--status-ready-text)] bg-[var(--status-ready-bg)] px-2.5 py-1 rounded-md border border-[var(--status-ready-border)] font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--status-ready-dot)]" />
+                    <span>Focus: {round.focus}</span>
                   </div>
 
-                  <p className="text-xs sm:text-sm text-[#A7AFBC] leading-relaxed mb-6">
+                  <p className="text-xs sm:text-sm text-[var(--foreground-muted)] leading-relaxed mb-6">
                     {round.description}
                   </p>
                 </div>
 
                 {/* Key Criteria Checklist */}
-                <div className="pt-4 border-t border-[#343B47]/60">
-                  <h4 className="text-xs font-mono font-semibold text-[#F5F5F5] uppercase tracking-wider mb-3">
-                    Evaluation Keypoints:
+                <div className="pt-5 border-t border-[var(--border-subtle)]">
+                  <h4 className="text-xs font-mono font-semibold text-[var(--foreground)] uppercase tracking-wider mb-3.5 flex items-center gap-2">
+                    <span className="text-[var(--accent-text)]">▸</span> Evaluation Keypoints:
                   </h4>
-                  <ul className="space-y-2">
+                  <ul className="space-y-2.5">
                     {round.criteria.map((c, i) => (
-                      <li key={i} className="flex items-start gap-2 text-xs text-[#A7AFBC]">
-                        <CheckCircle className="w-3.5 h-3.5 text-[#A855F7] shrink-0 mt-0.5" />
-                        <span>{c}</span>
+                      <li key={i} className="flex items-start gap-2.5 text-xs text-[var(--foreground-muted)] group-hover:text-[var(--foreground)] transition-colors">
+                        <CheckCircle className="w-3.5 h-3.5 text-[var(--accent-text)] shrink-0 mt-0.5" />
+                        <span className="leading-snug">{c}</span>
                       </li>
                     ))}
                   </ul>
