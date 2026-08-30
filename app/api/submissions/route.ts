@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { getSubmissionsCollection } from "@/lib/mongodb";
 import { getAuthenticatedTeam } from "@/lib/auth";
-import { uploadSubmissionPdf } from "@/lib/supabase";
-import { validateGitHubUrl, validatePdfFile } from "@/lib/validation";
+import { validateGitHubUrl, validateDemoVideoUrl } from "@/lib/validation";
 
 // GET: Fetch submission history for authenticated team
 export async function GET() {
@@ -25,12 +24,10 @@ export async function GET() {
     const formatted = teamSubmissions.map((sub, index) => ({
       id: sub._id!.toString(),
       submissionNumber: sub.submissionNumber,
-      pdfStoragePath: sub.pdfStoragePath,
-      pdfOriginalName: sub.pdfOriginalName,
-      pdfSizeBytes: sub.pdfSizeBytes,
+      demoVideoUrl: sub.demoVideoUrl,
       githubUrl: sub.githubUrl,
       submittedAt: sub.submittedAt,
-      isLatest: index === 0, // Latest submission is the first in descending order
+      isLatest: index === 0,
     }));
 
     return NextResponse.json(
@@ -60,84 +57,42 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const formData = await req.formData();
-    const githubUrl = formData.get("githubUrl") as string | null;
-    const pdfFile = formData.get("pdf") as File | null;
+    const body = await req.json();
+    const githubUrl = body.githubUrl as string | null;
+    const demoVideoUrl = body.demoVideoUrl as string | null;
 
-    // 1. Validate GitHub URL
     const githubVal = validateGitHubUrl(githubUrl ?? undefined);
     if (!githubVal.isValid) {
       return NextResponse.json({ success: false, error: githubVal.error }, { status: 400 });
     }
 
-    // 2. Validate PDF file
-    if (!pdfFile) {
-      return NextResponse.json(
-        { success: false, error: "PDF submission is required." },
-        { status: 400 }
-      );
-    }
-
-    const pdfVal = validatePdfFile({
-      name: pdfFile.name,
-      size: pdfFile.size,
-      type: pdfFile.type,
-    });
-    if (!pdfVal.isValid) {
-      return NextResponse.json({ success: false, error: pdfVal.error }, { status: 400 });
+    const demoVal = validateDemoVideoUrl(demoVideoUrl ?? undefined);
+    if (!demoVal.isValid) {
+      return NextResponse.json({ success: false, error: demoVal.error }, { status: 400 });
     }
 
     const teamObjectId = new ObjectId(session.teamId);
     const submissionsCollection = await getSubmissionsCollection();
 
-    // 3. Determine next submission number
     const previousSubmissionsCount = await submissionsCollection.countDocuments({
       teamId: teamObjectId,
     });
     const nextSubmissionNumber = previousSubmissionsCount + 1;
 
-    // 4. Upload PDF to Supabase Storage
-    const newSubmissionId = new ObjectId();
-    const arrayBuffer = await pdfFile.arrayBuffer();
-    const fileBuffer = Buffer.from(arrayBuffer);
-
-    let storagePath = "";
-    try {
-      const uploadRes = await uploadSubmissionPdf({
-        fileBuffer,
-        originalFilename: pdfFile.name,
-        teamId: session.teamId,
-        submissionId: newSubmissionId.toString(),
-        contentType: pdfFile.type || "application/pdf",
-      });
-      storagePath = uploadRes.storagePath;
-    } catch (uploadErr) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: `Storage upload failed: ${(uploadErr as Error).message || "Please try again."}`,
-        },
-        { status: 500 }
-      );
-    }
-
     const now = new Date();
 
-    // 5. Update previous submissions isLatest flag to false
     await submissionsCollection.updateMany(
       { teamId: teamObjectId },
       { $set: { isLatest: false } }
     );
 
-    // 6. Insert new submission record
+    const newSubmissionId = new ObjectId();
     await submissionsCollection.insertOne({
       _id: newSubmissionId,
       teamId: teamObjectId,
       teamName: session.teamName,
       submissionNumber: nextSubmissionNumber,
-      pdfStoragePath: storagePath,
-      pdfOriginalName: pdfFile.name,
-      pdfSizeBytes: pdfFile.size,
+      demoVideoUrl: demoVideoUrl!.trim(),
       githubUrl: githubUrl!.trim(),
       submittedAt: now,
       isLatest: true,
@@ -146,13 +101,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        message: `Submission #${nextSubmissionNumber} uploaded successfully!`,
+        message: `Submission #${nextSubmissionNumber} created successfully!`,
         submission: {
           id: newSubmissionId.toString(),
           submissionNumber: nextSubmissionNumber,
-          pdfStoragePath: storagePath,
-          pdfOriginalName: pdfFile.name,
-          pdfSizeBytes: pdfFile.size,
+          demoVideoUrl: demoVideoUrl!.trim(),
           githubUrl: githubUrl!.trim(),
           submittedAt: now,
           isLatest: true,

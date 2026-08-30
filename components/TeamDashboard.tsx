@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Shield, GitBranch, FileText, CheckCircle2, LogOut, RefreshCw } from "lucide-react";
+import { Shield, GitBranch, Link as LinkIcon, CheckCircle2, LogOut, RefreshCw } from "lucide-react";
 import MemberList from "./MemberList";
 import SubmissionForm from "./SubmissionForm";
 import SubmissionHistory, { SubmissionItem } from "./SubmissionHistory";
@@ -173,10 +173,15 @@ export default function TeamDashboard({ team, onLogout }: TeamDashboardProps) {
                 <span>View GitHub Repo</span>
               </a>
 
-              <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[var(--surface-secondary)] border border-[var(--border)] text-xs font-mono text-[var(--foreground-muted)]">
-                <FileText className="w-3.5 h-3.5 text-[var(--status-ready-text)]" />
-                <span className="truncate max-w-[150px]">{latestSub.pdfOriginalName}</span>
-              </div>
+              <a
+                href={latestSub.demoVideoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[var(--surface-secondary)] border border-[var(--border)] hover:border-[var(--accent)] text-xs font-mono text-[var(--foreground)] transition-colors"
+              >
+                <LinkIcon className="w-3.5 h-3.5 text-[var(--status-ready-text)]" />
+                <span>Watch Demo</span>
+              </a>
             </div>
           </div>
         </div>

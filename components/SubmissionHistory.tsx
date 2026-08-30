@@ -1,11 +1,9 @@
-import { History, FileText, ExternalLink, CheckCircle, Clock } from "lucide-react";
+import { History, Link as LinkIcon, ExternalLink, CheckCircle, Clock } from "lucide-react";
 
 export interface SubmissionItem {
   id: string;
   submissionNumber: number;
-  pdfStoragePath: string;
-  pdfOriginalName: string;
-  pdfSizeBytes: number;
+  demoVideoUrl: string;
   githubUrl: string;
   submittedAt: string | Date;
   isLatest: boolean;
@@ -17,14 +15,6 @@ interface SubmissionHistoryProps {
 }
 
 export default function SubmissionHistory({ submissions, isLoading }: SubmissionHistoryProps) {
-  const formatBytes = (bytes: number) => {
-    if (!bytes) return "0 KB";
-    if (bytes < 1024 * 1024) {
-      return `${(bytes / 1024).toFixed(1)} KB`;
-    }
-    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
-  };
-
   const formatDate = (dateInput: string | Date) => {
     try {
       const d = new Date(dateInput);
@@ -43,7 +33,6 @@ export default function SubmissionHistory({ submissions, isLoading }: Submission
 
   return (
     <div className="cyber-card rounded-2xl p-6 sm:p-8 transition-colors duration-200">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[var(--border-subtle)]">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-[var(--accent-surface)] border border-[var(--accent-border)] flex items-center justify-center">
@@ -115,22 +104,27 @@ export default function SubmissionHistory({ submissions, isLoading }: Submission
                 </div>
 
                 <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* PDF Details */}
                   <div className="p-3.5 rounded-xl bg-[var(--surface)] border border-[var(--border)] shadow-2xs flex items-center justify-between">
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <FileText className="w-4 h-4 text-[var(--accent-text)] shrink-0" />
+                      <LinkIcon className="w-4 h-4 text-[var(--accent-text)] shrink-0" />
                       <div className="truncate">
-                        <div className="text-xs font-bold text-[var(--foreground)] truncate">
-                          {sub.pdfOriginalName || "Submission.pdf"}
-                        </div>
-                        <div className="text-[10px] font-mono text-[var(--foreground-muted)]">
-                          {formatBytes(sub.pdfSizeBytes)} • Supabase Storage
+                        <div className="text-[10px] font-mono text-[var(--foreground-muted)]">Demo Video</div>
+                        <div className="text-xs font-mono text-[var(--foreground)] truncate">
+                          {sub.demoVideoUrl}
                         </div>
                       </div>
                     </div>
+                    <a
+                      href={sub.demoVideoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-1.5 rounded-lg bg-[var(--surface-secondary)] hover:bg-[var(--accent)] text-[var(--foreground-muted)] hover:text-white transition-colors shrink-0"
+                      title="Open Demo Video"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
                   </div>
 
-                  {/* GitHub Repo */}
                   <div className="p-3.5 rounded-xl bg-[var(--surface)] border border-[var(--border)] shadow-2xs flex items-center justify-between">
                     <div className="truncate min-w-0 pr-2">
                       <div className="text-[10px] font-mono text-[var(--foreground-muted)]">Target Repository</div>
