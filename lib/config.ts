@@ -32,10 +32,6 @@ export const EVENT_CONFIG = {
 export const APP_CONFIG = {
   minTeamMembers: 1,
   maxTeamMembers: 4,
-  maxPdfSizeBytes: 10 * 1024 * 1024, // 10 MB limit
-  maxPdfSizeDisplay: "10 MB",
-  allowedPdfMimes: ["application/pdf"],
   cookieName: "rer_session_token",
   sessionExpirySeconds: 60 * 60 * 24 * 7, // 7 days
-  defaultStorageBucket: "rer-submissions",
 } as const;

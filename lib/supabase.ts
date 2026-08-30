@@ -1,5 +1,4 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
-import { APP_CONFIG } from "./config";
 
 let supabaseAdminClient: SupabaseClient | null = null;
 
@@ -41,23 +40,20 @@ export async function uploadSubmissionPdf({
   contentType?: string;
 }): Promise<{ storagePath: string; publicUrl?: string }> {
   const supabase = getSupabaseAdmin();
-  const bucketName = process.env.SUPABASE_BUCKET || APP_CONFIG.defaultStorageBucket;
+  const bucketName = process.env.SUPABASE_BUCKET || "rer-submissions";
 
-  // Sanitized safe file path ensuring uniqueness and preserving past versions
   const timestamp = Date.now();
   const sanitizedName = originalFilename.replace(/[^a-zA-Z0-9.-]/g, "_");
   const storagePath = `submissions/${teamId}/${submissionId}_${timestamp}_${sanitizedName}`;
 
-  // Upload file buffer to Supabase Storage
   const { data, error } = await supabase.storage
     .from(bucketName)
     .upload(storagePath, fileBuffer, {
       contentType,
-      upsert: false, // Never overwrite previous files
+      upsert: false,
     });
 
   if (error) {
-    // If the bucket doesn't exist, try creating it once if we have service role permissions
     if (error.message?.toLowerCase().includes("bucket not found") || (error as { statusCode?: string }).statusCode === "404") {
       try {
         await supabase.storage.createBucket(bucketName, { public: true });
@@ -76,7 +72,6 @@ export async function uploadSubmissionPdf({
     }
   }
 
-  // Get public URL or download path
   const { data: urlData } = supabase.storage.from(bucketName).getPublicUrl(storagePath);
 
   return {

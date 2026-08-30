@@ -2,27 +2,17 @@ import dns from "node:dns";
 import { MongoClient, Db, Collection, ObjectId } from "mongodb";
 
 /**
- * Explicitly configure reliable DNS resolvers (Google & Cloudflare Public DNS)
- * in Node.js environments. This resolves Atlas SRV (mongodb+srv://) lookup
- * failures (querySrv ECONNREFUSED) caused by local/ISP DNS resolvers that do not
- * support or reject SRV records.
+ * Node's default DNS resolver on this network refuses MongoDB Atlas SRV
+ * queries (querySrv ECONNREFUSED). Explicit public resolvers work correctly.
  */
 function configureMongoDns(): void {
-  if (typeof window === "undefined") {
-    try {
-      if (typeof dns?.setServers === "function") {
-        dns.setServers(["8.8.8.8", "1.1.1.1"]);
-      }
-      if (typeof dns?.setDefaultResultOrder === "function") {
-        dns.setDefaultResultOrder("ipv4first");
-      }
-    } catch {
-      // Fallback silently if custom DNS cannot be set in current environment
-    }
+  try {
+    dns.setServers(["8.8.8.8", "1.1.1.1"]);
+  } catch (error) {
+    console.warn("[MongoDB] Could not configure custom DNS resolvers:", error);
   }
 }
 
-// Ensure DNS resolvers are configured at module load time
 configureMongoDns();
 
 export interface TeamMember {
@@ -45,9 +35,7 @@ export interface SubmissionDocument {
   teamId: ObjectId;
   teamName: string;
   submissionNumber: number;
-  pdfStoragePath: string;
-  pdfOriginalName: string;
-  pdfSizeBytes: number;
+  demoVideoUrl: string;
   githubUrl: string;
   submittedAt: Date;
   isLatest: boolean;
@@ -106,9 +94,8 @@ export function getMongoClientPromise(): Promise<MongoClient> {
     );
   }
 
-  // Ensure DNS is configured before connection attempt
   configureMongoDns();
-
+  
   if (process.env.NODE_ENV === "development") {
     if (!global._mongoClientPromise) {
       client = new MongoClient(currentUri);
