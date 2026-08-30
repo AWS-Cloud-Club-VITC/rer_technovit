@@ -1,42 +1,25 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import {
   Shield,
   KeyRound,
   Users,
   UserPlus,
   Trash2,
-  UploadCloud,
-  FileText,
   AlertCircle,
   CheckCircle2,
   Loader2,
   Lock,
   ArrowRight,
-  X,
 } from "lucide-react";
 import { APP_CONFIG } from "@/lib/config";
 import {
   validateTeamName,
   validatePassword,
   validateMembers,
-  validateGitHubUrl,
-  validatePdfFile,
 } from "@/lib/validation";
 import { TeamMember } from "@/lib/mongodb";
-
-function GithubIcon({ className = "w-4 h-4" }: { className?: string }) {
-  return (
-    <svg className={className} fill="currentColor" viewBox="0 0 24 24">
-      <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
-      />
-    </svg>
-  );
-}
 
 interface TeamAuthProps {
   onAuthSuccess: (team: {
@@ -60,15 +43,11 @@ export default function TeamAuth({ onAuthSuccess }: TeamAuthProps) {
   const [regMembers, setRegMembers] = useState<TeamMember[]>([
     { name: "", regNo: "" },
   ]);
-  const [regGithubUrl, setRegGithubUrl] = useState("");
-  const [regPdfFile, setRegPdfFile] = useState<File | null>(null);
 
   // Status state
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Switch tabs
   const switchTab = (mode: "login" | "register") => {
@@ -98,34 +77,6 @@ export default function TeamAuth({ onAuthSuccess }: TeamAuthProps) {
     const updated = [...regMembers];
     updated[index][field] = value;
     setRegMembers(updated);
-  };
-
-  // File handler
-  const handlePdfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setErrorMessage(null);
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const val = validatePdfFile({
-      name: file.name,
-      size: file.size,
-      type: file.type,
-    });
-
-    if (!val.isValid) {
-      setErrorMessage(val.error || "Invalid PDF file.");
-      if (fileInputRef.current) fileInputRef.current.value = "";
-      return;
-    }
-
-    setRegPdfFile(file);
-  };
-
-  const handleRemovePdf = () => {
-    setRegPdfFile(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
   };
 
   // Handle Login Submit
@@ -203,41 +154,18 @@ export default function TeamAuth({ onAuthSuccess }: TeamAuthProps) {
       return;
     }
 
-    const ghVal = validateGitHubUrl(regGithubUrl);
-    if (!ghVal.isValid) {
-      setErrorMessage(ghVal.error || "Invalid GitHub repository URL.");
-      return;
-    }
-
-    if (!regPdfFile) {
-      setErrorMessage("Architectural PDF file is required for registration.");
-      return;
-    }
-
-    const pdfVal = validatePdfFile({
-      name: regPdfFile.name,
-      size: regPdfFile.size,
-      type: regPdfFile.type,
-    });
-    if (!pdfVal.isValid) {
-      setErrorMessage(pdfVal.error || "Invalid PDF file.");
-      return;
-    }
-
     setIsLoading(true);
 
     try {
-      const formData = new FormData();
-      formData.append("teamName", regTeamName.trim());
-      formData.append("password", regPassword);
-      formData.append("confirmPassword", regConfirmPassword);
-      formData.append("members", JSON.stringify(regMembers));
-      formData.append("githubUrl", regGithubUrl.trim());
-      formData.append("pdf", regPdfFile);
-
       const res = await fetch("/api/auth/register", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          teamName: regTeamName.trim(),
+          password: regPassword,
+          confirmPassword: regConfirmPassword,
+          members: regMembers,
+        }),
       });
 
       const data = await res.json();
@@ -246,18 +174,13 @@ export default function TeamAuth({ onAuthSuccess }: TeamAuthProps) {
         throw new Error(data.error || "Registration failed. Please try again.");
       }
 
-      setSuccessMessage("Team registered and initial submission saved!");
+      setSuccessMessage("Team registered successfully!");
       onAuthSuccess(data.team);
     } catch (err) {
       setErrorMessage((err as Error).message || "Registration failed.");
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
   };
 
   return (
@@ -380,7 +303,7 @@ export default function TeamAuth({ onAuthSuccess }: TeamAuthProps) {
             <div className="text-center sm:text-left mb-4">
               <h2 className="text-xl font-bold text-[#F5F5F5]">New Team Registration</h2>
               <p className="text-xs text-[#A7AFBC] mt-1">
-                Register your team roster and submit your initial project artifacts.
+                Register your team name and member roster to get started.
               </p>
             </div>
 
@@ -505,99 +428,16 @@ export default function TeamAuth({ onAuthSuccess }: TeamAuthProps) {
               </div>
             </div>
 
-            {/* Submission Section */}
-            <div className="pt-2 border-t border-[#343B47]/60 space-y-4">
-              <div className="text-xs font-mono text-[#A7AFBC]">INITIAL PROJECT ARTIFACTS</div>
-
-              {/* GitHub URL */}
-              <div>
-                <label className="block text-xs font-mono font-medium text-[#F5F5F5] mb-2 flex items-center justify-between">
-                  <span className="flex items-center gap-2">
-                    <GithubIcon className="w-3.5 h-3.5 text-[#A855F7]" />
-                    <span>GitHub Repository URL <span className="text-[#EF4444]">*</span></span>
-                  </span>
-                  <span className="text-[10px] text-[#A7AFBC]">https://github.com/org/repo</span>
-                </label>
-                <input
-                  type="url"
-                  required
-                  value={regGithubUrl}
-                  onChange={(e) => setRegGithubUrl(e.target.value)}
-                  placeholder="https://github.com/team/reverse-engineering"
-                  disabled={isLoading}
-                  className="w-full px-4 py-3 rounded-lg bg-[#151A23] border border-[#343B47] text-sm text-[#F5F5F5] placeholder-[#A7AFBC]/40 focus:outline-none focus:border-[#A855F7] focus:ring-1 focus:ring-[#A855F7] font-mono"
-                />
-              </div>
-
-              {/* PDF Upload */}
-              <div>
-                <label className="block text-xs font-mono font-medium text-[#F5F5F5] mb-2 flex items-center justify-between">
-                  <span className="flex items-center gap-2">
-                    <FileText className="w-3.5 h-3.5 text-[#A855F7]" />
-                    <span>Architectural PDF Document <span className="text-[#EF4444]">*</span></span>
-                  </span>
-                  <span className="text-[10px] text-[#A7AFBC]">Max {APP_CONFIG.maxPdfSizeDisplay}</span>
-                </label>
-
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handlePdfChange}
-                  accept=".pdf,application/pdf"
-                  disabled={isLoading}
-                  className="hidden"
-                  id="reg-pdf-upload"
-                />
-
-                {!regPdfFile ? (
-                  <label
-                    htmlFor="reg-pdf-upload"
-                    className="flex flex-col items-center justify-center p-5 border-2 border-dashed border-[#343B47] hover:border-[#A855F7] rounded-lg bg-[#151A23]/60 cursor-pointer group transition-all"
-                  >
-                    <UploadCloud className="w-7 h-7 text-[#A7AFBC] group-hover:text-[#A855F7] transition-colors mb-1.5" />
-                    <span className="text-xs font-semibold text-[#F5F5F5] group-hover:text-[#B45CFF]">
-                      Click to upload team PDF
-                    </span>
-                    <span className="text-[10px] font-mono text-[#A7AFBC] mt-0.5">
-                      Accepted: .pdf only (Max {APP_CONFIG.maxPdfSizeDisplay})
-                    </span>
-                  </label>
-                ) : (
-                  <div className="p-3.5 rounded-lg bg-[#151A23] border border-[#343B47] flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <FileText className="w-4 h-4 text-[#22C55E]" />
-                      <div className="truncate max-w-[220px] sm:max-w-xs">
-                        <div className="text-xs font-bold text-[#F5F5F5] truncate">
-                          {regPdfFile.name}
-                        </div>
-                        <div className="text-[10px] font-mono text-[#A7AFBC]">
-                          {formatFileSize(regPdfFile.size)}
-                        </div>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleRemovePdf}
-                      disabled={isLoading}
-                      className="p-1 rounded hover:bg-[#EF4444]/20 text-[#A7AFBC] hover:text-[#EF4444]"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-
             {/* Register Submit Button */}
             <button
               type="submit"
-              disabled={isLoading || !regTeamName || !regPassword || !regPdfFile || !regGithubUrl}
+              disabled={isLoading || !regTeamName || !regPassword || !regConfirmPassword}
               className="w-full mt-4 py-3.5 px-6 rounded-lg bg-gradient-to-r from-[#A855F7] to-[#9333EA] hover:from-[#B45CFF] hover:to-[#A855F7] text-[#151A23] font-bold text-sm tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-[#A855F7]/25"
             >
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>REGISTERING TEAM & ARTIFACTS...</span>
+                  <span>REGISTERING TEAM...</span>
                 </>
               ) : (
                 <>

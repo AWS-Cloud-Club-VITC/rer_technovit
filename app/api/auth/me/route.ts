@@ -1,34 +1,49 @@
 import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { getTeamsCollection } from "@/lib/mongodb";
-import { getAuthenticatedTeam } from "@/lib/auth";
+import { getAuthenticatedTeam, getSessionCookieOptions } from "@/lib/auth";
 
 export async function GET() {
   try {
     const session = await getAuthenticatedTeam();
     if (!session) {
       return NextResponse.json(
-        { success: false, error: "Unauthorized. Please log in to your team portal." },
-        { status: 401 }
+        { success: true, authenticated: false, team: null },
+        { status: 200 }
       );
     }
 
-    const teamsCollection = await getTeamsCollection();
-    const team = await teamsCollection.findOne(
-      { _id: new ObjectId(session.teamId) },
-      { projection: { passwordHash: 0, teamNameLower: 0 } }
-    );
+    let team = null;
+    try {
+      if (ObjectId.isValid(session.teamId)) {
+        const teamsCollection = await getTeamsCollection();
+        team = await teamsCollection.findOne(
+          { _id: new ObjectId(session.teamId) },
+          { projection: { passwordHash: 0, teamNameLower: 0 } }
+        );
+      }
+    } catch {
+      // Database or parsing error
+    }
 
     if (!team) {
-      return NextResponse.json(
-        { success: false, error: "Team account not found." },
-        { status: 404 }
+      // Stale session cookie pointing to a missing team: clear cookie and return authenticated: false
+      const cookieOptions = getSessionCookieOptions();
+      const res = NextResponse.json(
+        { success: true, authenticated: false, team: null },
+        { status: 200 }
       );
+      res.cookies.set(cookieOptions.name, "", {
+        ...cookieOptions,
+        maxAge: 0,
+      });
+      return res;
     }
 
     return NextResponse.json(
       {
         success: true,
+        authenticated: true,
         team: {
           teamId: team._id!.toString(),
           teamName: team.teamName,

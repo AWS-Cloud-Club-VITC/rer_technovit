@@ -26,7 +26,7 @@ export default function PortalPage() {
         const res = await fetch("/api/auth/me");
         const data = await res.json();
         if (isMounted) {
-          if (res.ok && data.success && data.team) {
+          if (res.ok && data.success && data.authenticated && data.team) {
             setTeam(data.team);
           } else {
             setTeam(null);

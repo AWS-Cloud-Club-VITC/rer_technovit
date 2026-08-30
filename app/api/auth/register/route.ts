@@ -1,34 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
-import { getTeamsCollection, getSubmissionsCollection, TeamMember } from "@/lib/mongodb";
+import { getTeamsCollection, TeamMember } from "@/lib/mongodb";
 import { hashPassword, signSessionToken, getSessionCookieOptions } from "@/lib/auth";
-import { uploadSubmissionPdf } from "@/lib/supabase";
 import {
   validateTeamName,
   validatePassword,
   validateMembers,
-  validateGitHubUrl,
-  validatePdfFile,
 } from "@/lib/validation";
 
 export async function POST(req: NextRequest) {
   try {
-    const formData = await req.formData();
+    const body = await req.json().catch(() => null);
+    if (!body) {
+      return NextResponse.json(
+        { success: false, error: "Invalid request payload." },
+        { status: 400 }
+      );
+    }
 
-    const teamName = formData.get("teamName") as string | null;
-    const password = formData.get("password") as string | null;
-    const confirmPassword = formData.get("confirmPassword") as string | null;
-    const membersRaw = formData.get("members") as string | null;
-    const githubUrl = formData.get("githubUrl") as string | null;
-    const pdfFile = formData.get("pdf") as File | null;
+    const { teamName, password, confirmPassword, members: membersRaw } = body;
 
     // 1. Basic validation
-    const teamNameVal = validateTeamName(teamName ?? undefined);
+    const teamNameVal = validateTeamName(teamName);
     if (!teamNameVal.isValid) {
       return NextResponse.json({ success: false, error: teamNameVal.error }, { status: 400 });
     }
 
-    const passwordVal = validatePassword(password ?? undefined);
+    const passwordVal = validatePassword(password);
     if (!passwordVal.isValid) {
       return NextResponse.json({ success: false, error: passwordVal.error }, { status: 400 });
     }
@@ -42,10 +40,9 @@ export async function POST(req: NextRequest) {
 
     // 2. Members validation
     let members: TeamMember[] = [];
-    try {
-      if (!membersRaw) throw new Error("Missing members");
-      members = JSON.parse(membersRaw);
-    } catch {
+    if (Array.isArray(membersRaw)) {
+      members = membersRaw;
+    } else {
       return NextResponse.json(
         { success: false, error: "Invalid team members format." },
         { status: 400 }
@@ -57,31 +54,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: membersVal.error }, { status: 400 });
     }
 
-    // 3. GitHub URL validation
-    const githubVal = validateGitHubUrl(githubUrl ?? undefined);
-    if (!githubVal.isValid) {
-      return NextResponse.json({ success: false, error: githubVal.error }, { status: 400 });
-    }
-
-    // 4. PDF File validation
-    if (!pdfFile) {
-      return NextResponse.json(
-        { success: false, error: "PDF submission is required." },
-        { status: 400 }
-      );
-    }
-
-    const pdfVal = validatePdfFile({
-      name: pdfFile.name,
-      size: pdfFile.size,
-      type: pdfFile.type,
-    });
-    if (!pdfVal.isValid) {
-      return NextResponse.json({ success: false, error: pdfVal.error }, { status: 400 });
-    }
-
-    // 5. Check if team already exists in MongoDB
-    const trimmedTeamName = teamName!.trim();
+    // 3. Check if team already exists in MongoDB
+    const trimmedTeamName = teamName.trim();
     const teamNameLower = trimmedTeamName.toLowerCase();
     const teamsCollection = await getTeamsCollection();
 
@@ -93,10 +67,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 6. Hash password
-    const passwordHash = await hashPassword(password!);
+    // 4. Hash password
+    const passwordHash = await hashPassword(password);
 
-    // 7. Insert Team in MongoDB
+    // 5. Insert Team in MongoDB
     const teamId = new ObjectId();
     const cleanMembers = members.map((m) => ({
       name: m.name.trim(),
@@ -114,49 +88,7 @@ export async function POST(req: NextRequest) {
       updatedAt: now,
     });
 
-    // 8. Upload PDF to Supabase Storage
-    const submissionId = new ObjectId();
-    const arrayBuffer = await pdfFile.arrayBuffer();
-    const fileBuffer = Buffer.from(arrayBuffer);
-
-    let storagePath = "";
-    try {
-      const uploadRes = await uploadSubmissionPdf({
-        fileBuffer,
-        originalFilename: pdfFile.name,
-        teamId: teamId.toString(),
-        submissionId: submissionId.toString(),
-        contentType: pdfFile.type || "application/pdf",
-      });
-      storagePath = uploadRes.storagePath;
-    } catch (uploadErr) {
-      // Rollback team creation if storage upload failed
-      await teamsCollection.deleteOne({ _id: teamId });
-      return NextResponse.json(
-        {
-          success: false,
-          error: `Storage upload failed: ${(uploadErr as Error).message || "Please try again."}`,
-        },
-        { status: 500 }
-      );
-    }
-
-    // 9. Record first submission in MongoDB
-    const submissionsCollection = await getSubmissionsCollection();
-    await submissionsCollection.insertOne({
-      _id: submissionId,
-      teamId,
-      teamName: trimmedTeamName,
-      submissionNumber: 1,
-      pdfStoragePath: storagePath,
-      pdfOriginalName: pdfFile.name,
-      pdfSizeBytes: pdfFile.size,
-      githubUrl: githubUrl!.trim(),
-      submittedAt: now,
-      isLatest: true,
-    });
-
-    // 10. Issue session cookie
+    // 6. Issue session cookie
     const token = await signSessionToken({
       teamId: teamId.toString(),
       teamName: trimmedTeamName,
