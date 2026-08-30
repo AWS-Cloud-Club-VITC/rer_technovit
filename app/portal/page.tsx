@@ -74,8 +74,8 @@ export default function PortalPage() {
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
         {isCheckingAuth ? (
           <div className="py-24 flex flex-col items-center justify-center gap-4 text-center">
-            <Loader2 className="w-8 h-8 text-[#A855F7] animate-spin" />
-            <div className="text-xs font-mono text-[#A7AFBC]">
+            <Loader2 className="w-8 h-8 text-[var(--accent-text)] animate-spin" />
+            <div className="text-xs font-mono text-[var(--foreground-muted)]">
               Verifying team session credentials...
             </div>
           </div>

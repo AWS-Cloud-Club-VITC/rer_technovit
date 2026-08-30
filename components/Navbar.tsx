@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Terminal, Shield, ArrowUpRight } from "lucide-react";
+import ThemeToggle from "./ThemeToggle";
 
 interface NavbarProps {
   isAuthenticated?: boolean;
@@ -11,54 +12,72 @@ interface NavbarProps {
 
 export default function Navbar({ isAuthenticated, teamName, onLogout }: NavbarProps) {
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-[#343B47] bg-[#151A23]/90 backdrop-blur-md">
+    <header className="sticky top-0 z-50 w-full border-b border-[var(--border)] glass-header transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-9 h-9 rounded-lg bg-[#1C222C] border border-[#343B47] flex items-center justify-center group-hover:border-[#A855F7] transition-colors shadow-sm">
-            <Terminal className="w-5 h-5 text-[#A855F7] group-hover:text-[#B45CFF] transition-colors" />
+          <div className="w-9 h-9 rounded-lg bg-[var(--surface-secondary)] border border-[var(--border)] flex items-center justify-center group-hover:border-[var(--accent)] group-hover:bg-[var(--accent-surface)] transition-all shadow-sm">
+            <Terminal className="w-5 h-5 text-[var(--accent-text)] group-hover:text-[var(--accent-hover)] transition-colors" />
           </div>
           <div className="flex flex-col">
-            <span className="font-bold tracking-wider text-sm sm:text-base text-[#F5F5F5] group-hover:text-[#B45CFF] transition-colors">
-              RER <span className="text-[#A855F7]">2026</span>
-            </span>
-            <span className="text-[10px] uppercase font-mono tracking-widest text-[#A7AFBC]">
+            <div className="flex items-center gap-1.5">
+              <span className="font-extrabold tracking-wider text-sm sm:text-base text-[var(--foreground)] group-hover:text-[var(--accent-text)] transition-colors">
+                RER <span className="text-[var(--accent-text)]">2026</span>
+              </span>
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--status-ready-dot)] animate-pulse hidden sm:inline-block" />
+            </div>
+            <span className="text-[10px] uppercase font-mono tracking-widest text-[var(--foreground-muted)]">
               Reverse Engineering Roulette
             </span>
           </div>
         </Link>
 
         {/* Navigation Links */}
-        <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-[#A7AFBC]">
-          <Link href="/#about" className="hover:text-[#F5F5F5] transition-colors">
+        <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-[var(--foreground-muted)]">
+          <Link
+            href="/#about"
+            className="hover:text-[var(--foreground)] transition-colors relative py-1 hover:after:w-full after:w-0 after:h-[2px] after:bg-[var(--accent)] after:absolute after:bottom-0 after:left-0 after:transition-all"
+          >
             Concept
           </Link>
-          <Link href="/#event-flow" className="hover:text-[#F5F5F5] transition-colors">
+          <Link
+            href="/#event-flow"
+            className="hover:text-[var(--foreground)] transition-colors relative py-1 hover:after:w-full after:w-0 after:h-[2px] after:bg-[var(--accent)] after:absolute after:bottom-0 after:left-0 after:transition-all"
+          >
             Event Flow
           </Link>
-          <Link href="/#rounds" className="hover:text-[#F5F5F5] transition-colors">
+          <Link
+            href="/#rounds"
+            className="hover:text-[var(--foreground)] transition-colors relative py-1 hover:after:w-full after:w-0 after:h-[2px] after:bg-[var(--accent)] after:absolute after:bottom-0 after:left-0 after:transition-all"
+          >
             Three Rounds
           </Link>
-          <Link href="/#rules" className="hover:text-[#F5F5F5] transition-colors">
+          <Link
+            href="/#rules"
+            className="hover:text-[var(--foreground)] transition-colors relative py-1 hover:after:w-full after:w-0 after:h-[2px] after:bg-[var(--accent)] after:absolute after:bottom-0 after:left-0 after:transition-all"
+          >
             Rules & Scoring
           </Link>
         </nav>
 
-        {/* Action Button */}
-        <div className="flex items-center gap-3">
+        {/* Action Controls & Theme Toggle */}
+        <div className="flex items-center gap-2.5 sm:gap-3">
+          {/* Theme Toggle Button */}
+          <ThemeToggle />
+
           {isAuthenticated ? (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
               <Link
                 href="/portal"
-                className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-md bg-[#1C222C] border border-[#343B47] text-xs font-mono text-[#F5F5F5] hover:border-[#A855F7] transition-all"
+                className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-[var(--surface-secondary)] border border-[var(--border)] text-xs font-mono text-[var(--foreground)] hover:border-[var(--accent)] transition-all"
               >
-                <Shield className="w-3.5 h-3.5 text-[#A855F7]" />
+                <Shield className="w-3.5 h-3.5 text-[var(--accent-text)]" />
                 <span>{teamName || "Team Portal"}</span>
               </Link>
               {onLogout && (
                 <button
                   onClick={onLogout}
-                  className="px-3 py-1.5 text-xs rounded-md bg-[#1C222C] border border-[#343B47] text-[#A7AFBC] hover:text-[#EF4444] hover:border-[#EF4444]/40 transition-colors"
+                  className="px-3 py-1.5 text-xs rounded-lg bg-[var(--surface-secondary)] border border-[var(--border)] text-[var(--foreground-muted)] hover:text-[var(--status-error-text)] hover:border-[var(--status-error-border)] transition-colors"
                 >
                   Logout
                 </button>
@@ -67,7 +86,7 @@ export default function Navbar({ isAuthenticated, teamName, onLogout }: NavbarPr
           ) : (
             <Link
               href="/portal"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#A855F7] hover:bg-[#B45CFF] text-[#151A23] font-semibold text-xs sm:text-sm tracking-wide transition-all shadow-md hover:shadow-[#A855F7]/25"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-semibold text-xs sm:text-sm tracking-wide transition-all shadow-md hover:scale-[1.02] active:scale-[0.98]"
             >
               <span>ENTER PORTAL</span>
               <ArrowUpRight className="w-4 h-4" />

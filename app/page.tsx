@@ -29,27 +29,27 @@ export default function Home() {
         <RulesAndScoring />
 
         {/* Bottom Call to Action Section */}
-        <section className="py-20 border-b border-[#343B47]/60 relative overflow-hidden bg-gradient-to-b from-transparent to-[#1C222C]/40">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[250px] bg-[#A855F7]/10 blur-[100px] pointer-events-none rounded-full" />
+        <section className="py-20 sm:py-28 border-b border-[var(--border)] relative overflow-hidden bg-gradient-to-b from-transparent to-[var(--surface-secondary)]/80 transition-colors duration-200">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[280px] bg-[var(--accent)]/08 blur-[120px] pointer-events-none rounded-full" />
 
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-[#1C222C] border border-[#343B47] text-xs font-mono text-[#A855F7] mb-4">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--surface)] border border-[var(--border)] text-xs font-mono text-[var(--accent-text)] mb-5 shadow-sm font-semibold">
               <Sparkles className="w-3.5 h-3.5" />
               <span>READY FOR THE CHALLENGE?</span>
             </div>
 
-            <h2 className="text-3xl sm:text-5xl font-extrabold text-[#F5F5F5] tracking-tight max-w-2xl mx-auto">
+            <h2 className="text-3xl sm:text-5xl font-extrabold text-[var(--foreground)] tracking-tight max-w-2xl mx-auto">
               Ready to Reverse Engineer the System?
             </h2>
 
-            <p className="mt-4 text-base text-[#A7AFBC] max-w-xl mx-auto font-mono">
+            <p className="mt-4 text-base text-[var(--foreground-muted)] max-w-xl mx-auto font-mono">
               Register your team or access your portal to upload submissions for {EVENT_CONFIG.name}.
             </p>
 
-            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <div className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
                 href="/portal"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 rounded-lg bg-gradient-to-r from-[#A855F7] to-[#9333EA] hover:from-[#B45CFF] hover:to-[#A855F7] text-[#151A23] font-bold text-sm tracking-wider transition-all shadow-lg hover:shadow-[#A855F7]/30 group"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 rounded-xl bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-bold text-sm tracking-wider transition-all shadow-lg hover:scale-[1.02] active:scale-[0.98] group"
               >
                 <Terminal className="w-4 h-4" />
                 <span>ACCESS TEAM PORTAL</span>
@@ -58,9 +58,9 @@ export default function Home() {
 
               <Link
                 href="/portal"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-4 rounded-lg bg-[#1C222C] border border-[#343B47] hover:border-[#A855F7]/60 text-[#F5F5F5] font-medium text-sm transition-colors"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-4 rounded-xl bg-[var(--surface)] border border-[var(--border)] hover:border-[var(--accent)] hover:bg-[var(--surface-secondary)] text-[var(--foreground)] font-semibold text-sm transition-all shadow-sm hover:scale-[1.02] active:scale-[0.98]"
               >
-                <Shield className="w-4 h-4 text-[#A855F7]" />
+                <Shield className="w-4 h-4 text-[var(--accent-text)]" />
                 <span>Existing Team Login</span>
               </Link>
             </div>
