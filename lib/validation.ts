@@ -129,32 +129,47 @@ export function validateMembers(members?: TeamMember[]): ValidationResult {
 }
 
 /**
- * Validates uploaded PDF file metadata / buffer
+ * Validates demo video URL - only accepts Google Drive links
  */
-export function validatePdfFile(file?: {
-  name: string;
-  size: number;
-  type: string;
-} | null): ValidationResult {
-  if (!file) {
-    return { isValid: false, error: "PDF submission file is required." };
+export function validateDemoVideoUrl(url?: string): ValidationResult {
+  if (!url || typeof url !== "string") {
+    return { isValid: false, error: "Demo Video Link is required." };
   }
 
-  const isPdfMime = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
-  if (!isPdfMime) {
-    return { isValid: false, error: "Only PDF files are accepted." };
-  }
+  const trimmed = url.trim();
 
-  if (file.size <= 0) {
-    return { isValid: false, error: "The submitted PDF file is empty." };
-  }
+  try {
+    const parsed = new URL(trimmed);
+    const protocol = parsed.protocol.toLowerCase();
+    const hostname = parsed.hostname.toLowerCase();
 
-  if (file.size > APP_CONFIG.maxPdfSizeBytes) {
+    if (protocol !== "http:" && protocol !== "https:") {
+      return {
+        isValid: false,
+        error: "Please enter a valid Google Drive video link.",
+      };
+    }
+
+    if (hostname !== "drive.google.com" && hostname !== "www.drive.google.com") {
+      return {
+        isValid: false,
+        error: "Please enter a valid Google Drive video link.",
+      };
+    }
+
+    const pathname = parsed.pathname.toLowerCase();
+    if (!pathname.includes("/file/d/")) {
+      return {
+        isValid: false,
+        error: "Please enter a valid Google Drive video link (e.g., https://drive.google.com/file/d/...).",
+      };
+    }
+
+    return { isValid: true };
+  } catch {
     return {
       isValid: false,
-      error: `PDF exceeds the allowed size of ${APP_CONFIG.maxPdfSizeDisplay}.`,
+      error: "Please enter a valid Google Drive video link.",
     };
   }
-
-  return { isValid: true };
 }
