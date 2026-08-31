@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { getSubmissionsCollection } from "@/lib/mongodb";
 import { getAuthenticatedTeam } from "@/lib/auth";
-import { validateGitHubUrl, validateDemoVideoUrl, validateRoundNumber } from "@/lib/validation";
+import { validateGitHubUrl, validateDemoVideoUrl, validateRoundNumber, validateBuilderAlias } from "@/lib/validation";
 
 // GET: Fetch submission history for authenticated team
 export async function GET() {
@@ -27,6 +27,7 @@ export async function GET() {
       roundNumber: sub.roundNumber || 1,
       demoVideoUrl: sub.demoVideoUrl,
       githubUrl: sub.githubUrl,
+      builderAlias: sub.builderAlias,
       submittedAt: sub.submittedAt,
       isLatest: sub.isLatest ?? false,
     }));
@@ -69,6 +70,7 @@ export async function POST(req: NextRequest) {
     const roundNumber = Number(body.roundNumber || 1);
     const githubUrl = body.githubUrl as string | null;
     const demoVideoUrl = body.demoVideoUrl as string | null;
+    const builderAlias = body.builderAlias as string | null;
 
     const roundVal = validateRoundNumber(roundNumber);
     if (!roundVal.isValid) {
@@ -83,6 +85,13 @@ export async function POST(req: NextRequest) {
     const demoVal = validateDemoVideoUrl(demoVideoUrl ?? undefined);
     if (!demoVal.isValid) {
       return NextResponse.json({ success: false, error: demoVal.error }, { status: 400 });
+    }
+
+    if (roundNumber === 2) {
+      const aliasVal = validateBuilderAlias(builderAlias ?? undefined);
+      if (!aliasVal.isValid) {
+        return NextResponse.json({ success: false, error: aliasVal.error }, { status: 400 });
+      }
     }
 
     const teamObjectId = new ObjectId(session.teamId);
@@ -101,6 +110,8 @@ export async function POST(req: NextRequest) {
       { $set: { isLatest: false } }
     );
 
+    const trimmedAlias = builderAlias ? builderAlias.trim() : undefined;
+
     const newSubmissionId = new ObjectId();
     await submissionsCollection.insertOne({
       _id: newSubmissionId,
@@ -110,6 +121,7 @@ export async function POST(req: NextRequest) {
       roundNumber,
       demoVideoUrl: demoVideoUrl!.trim(),
       githubUrl: githubUrl!.trim(),
+      ...(trimmedAlias ? { builderAlias: trimmedAlias } : {}),
       submittedAt: now,
       isLatest: true,
     });
@@ -124,6 +136,7 @@ export async function POST(req: NextRequest) {
           roundNumber,
           demoVideoUrl: demoVideoUrl!.trim(),
           githubUrl: githubUrl!.trim(),
+          builderAlias: trimmedAlias,
           submittedAt: now,
           isLatest: true,
         },
