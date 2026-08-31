@@ -76,6 +76,15 @@ export default function Rounds() {
 
                   <div className="flex items-center gap-2 mb-1.5">
                     <span className="text-xs font-mono text-[var(--accent-text)] font-bold">ROUND 0{round.number}</span>
+                    {EVENT_CONFIG.rounds[round.number - 1].submissionOpen ? (
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[var(--status-ready-bg)] border border-[var(--status-ready-border)] text-[var(--status-ready-text)] font-semibold">
+                        SUBMISSIONS OPEN
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[var(--status-error-bg)] border border-[var(--status-error-border)] text-[var(--status-error-text)] font-semibold">
+                        SUBMISSIONS CLOSED
+                      </span>
+                    )}
                     {round.isSpecial && (
                       <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[var(--accent-surface)] border border-[var(--accent-border)] text-[var(--accent-text)] font-semibold">
                         FLAGSHIP

@@ -24,18 +24,22 @@ interface SubmissionFormProps {
 }
 
 export default function SubmissionForm({ onSuccess, latestByRound }: SubmissionFormProps) {
-  const [selectedRound, setSelectedRound] = useState<number>(1);
+  const defaultRound = EVENT_CONFIG.rounds.find((r) => r.submissionOpen)?.number || 2;
+  const [selectedRound, setSelectedRound] = useState<number>(defaultRound);
   const [githubUrl, setGithubUrl] = useState("");
   const [demoVideoUrl, setDemoVideoUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+  const currentRoundConfig = EVENT_CONFIG.rounds.find((r) => r.number === selectedRound);
+  const isRoundOpen = currentRoundConfig?.submissionOpen ?? false;
+
   const handleRoundChange = (roundNumber: number) => {
     setSelectedRound(roundNumber);
     setErrorMessage(null);
     setSuccessMessage(null);
-    // Optionally populate form with existing latest submission for that round
+    // Populate form with existing latest submission for that round if available
     const existing = latestByRound?.[roundNumber];
     if (existing) {
       setGithubUrl(existing.githubUrl);
@@ -50,6 +54,11 @@ export default function SubmissionForm({ onSuccess, latestByRound }: SubmissionF
     e.preventDefault();
     setErrorMessage(null);
     setSuccessMessage(null);
+
+    if (!isRoundOpen) {
+      setErrorMessage(`Submissions for Round ${selectedRound} are currently closed.`);
+      return;
+    }
 
     const ghVal = validateGitHubUrl(githubUrl);
     if (!ghVal.isValid) {
@@ -100,7 +109,7 @@ export default function SubmissionForm({ onSuccess, latestByRound }: SubmissionF
         <div>
           <h3 className="text-lg font-bold text-[var(--foreground)]">Project Submission (2 Rounds)</h3>
           <p className="text-xs text-[var(--foreground-muted)]">
-            Select a round and submit your GitHub repository link and Google Drive video link for evaluation.
+            Select an active round and submit your GitHub repository link and Google Drive video link for evaluation.
           </p>
         </div>
       </div>
@@ -115,6 +124,7 @@ export default function SubmissionForm({ onSuccess, latestByRound }: SubmissionF
           {EVENT_CONFIG.rounds.map((round) => {
             const isSelected = selectedRound === round.number;
             const hasSubmission = Boolean(latestByRound?.[round.number]);
+            const isOpen = round.submissionOpen;
             return (
               <button
                 key={round.number}
@@ -130,15 +140,26 @@ export default function SubmissionForm({ onSuccess, latestByRound }: SubmissionF
                   <span className={`text-xs font-mono font-bold ${isSelected ? "text-[var(--accent-text)]" : "text-[var(--foreground)]"}`}>
                     Round {round.number}
                   </span>
-                  {hasSubmission ? (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-mono text-[var(--status-ready-text)] font-semibold bg-[var(--status-ready-bg)] px-2 py-0.5 rounded-full border border-[var(--status-ready-border)]">
-                      <CheckCircle2 className="w-3 h-3" /> Submitted
-                    </span>
-                  ) : (
-                    <span className="text-[10px] font-mono text-[var(--foreground-muted)] bg-[var(--surface)] px-2 py-0.5 rounded-full border border-[var(--border)]">
-                      Pending
-                    </span>
-                  )}
+                  <div className="flex items-center gap-1.5">
+                    {isOpen ? (
+                      <span className="text-[10px] font-mono text-[var(--status-ready-text)] bg-[var(--status-ready-bg)] px-2 py-0.5 rounded-full border border-[var(--status-ready-border)] font-semibold">
+                        Open
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-mono text-[var(--status-error-text)] bg-[var(--status-error-bg)] px-2 py-0.5 rounded-full border border-[var(--status-error-border)] font-semibold">
+                        Closed
+                      </span>
+                    )}
+                    {hasSubmission ? (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-mono text-[var(--status-ready-text)] font-semibold bg-[var(--status-ready-bg)] px-2 py-0.5 rounded-full border border-[var(--status-ready-border)]">
+                        <CheckCircle2 className="w-3 h-3" /> Submitted
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-mono text-[var(--foreground-muted)] bg-[var(--surface)] px-2 py-0.5 rounded-full border border-[var(--border)]">
+                        Pending
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="text-[11px] font-semibold text-[var(--foreground)] mt-1 truncate">
                   {round.name}
@@ -153,6 +174,13 @@ export default function SubmissionForm({ onSuccess, latestByRound }: SubmissionF
       </div>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-6">
+        {!isRoundOpen && (
+          <div className="p-4 rounded-xl bg-[var(--status-error-bg)] border border-[var(--status-error-border)] flex items-start gap-3 text-xs text-[var(--status-error-text)]">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            <span>Submissions for Round {selectedRound} are currently closed. You can switch to an active round to make a submission.</span>
+          </div>
+        )}
+
         {errorMessage && (
           <div className="p-4 rounded-xl bg-[var(--status-error-bg)] border border-[var(--status-error-border)] flex items-start gap-3 text-xs text-[var(--status-error-text)]">
             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
@@ -181,8 +209,8 @@ export default function SubmissionForm({ onSuccess, latestByRound }: SubmissionF
             value={githubUrl}
             onChange={(e) => setGithubUrl(e.target.value)}
             placeholder={`https://github.com/your-team/round-${selectedRound}-solution`}
-            disabled={true}
-            className="w-full px-4 py-3 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)] text-sm text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:border-[var(--input-focus)] focus:ring-2 focus:ring-[var(--accent)]/20 disabled:opacity-50 transition-all font-mono shadow-2xs cursor-not-allowed"
+            disabled={!isRoundOpen || isSubmitting}
+            className="w-full px-4 py-3 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)] text-sm text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:border-[var(--input-focus)] focus:ring-2 focus:ring-[var(--accent)]/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-mono shadow-2xs"
           />
         </div>
 
@@ -200,15 +228,15 @@ export default function SubmissionForm({ onSuccess, latestByRound }: SubmissionF
             value={demoVideoUrl}
             onChange={(e) => setDemoVideoUrl(e.target.value)}
             placeholder="https://drive.google.com/file/d/1fSr5gEoPzhGG3x_ijroiZGLvhYZIfQpz/view?usp=drive_link"
-            disabled={true}
-            className="w-full px-4 py-3 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)] text-sm text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:border-[var(--input-focus)] focus:ring-2 focus:ring-[var(--accent)]/20 disabled:opacity-50 transition-all font-mono shadow-2xs cursor-not-allowed"
+            disabled={!isRoundOpen || isSubmitting}
+            className="w-full px-4 py-3 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)] text-sm text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:border-[var(--input-focus)] focus:ring-2 focus:ring-[var(--accent)]/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-mono shadow-2xs"
           />
         </div>
 
         <div className="pt-2">
           <button
             type="submit"
-            disabled={true}
+            disabled={!isRoundOpen || isSubmitting}
             className="w-full py-3.5 px-6 rounded-xl bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-bold text-sm tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg hover:scale-[1.01] active:scale-[0.99]"
           >
             {isSubmitting ? (

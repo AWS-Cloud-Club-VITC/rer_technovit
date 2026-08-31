@@ -178,7 +178,7 @@ export function validateDemoVideoUrl(url?: string): ValidationResult {
  * Validates competition round number (must be 1 or 2)
  */
 export function validateRoundNumber(roundNumber?: unknown): ValidationResult {
-  const maxRounds = APP_CONFIG ? EVENT_CONFIG.rounds.length : 2;
+  const maxRounds = EVENT_CONFIG.rounds.length;
   const round = Number(roundNumber);
   if (!roundNumber || isNaN(round) || !Number.isInteger(round) || round < 1 || round > maxRounds) {
     return {
@@ -186,6 +186,15 @@ export function validateRoundNumber(roundNumber?: unknown): ValidationResult {
       error: `Invalid round number. Please select Round 1 or Round 2.`,
     };
   }
+
+  const roundConfig = EVENT_CONFIG.rounds.find((r) => r.number === round);
+  if (roundConfig && !roundConfig.submissionOpen) {
+    return {
+      isValid: false,
+      error: `Submissions for Round ${round} are currently closed.`,
+    };
+  }
+
   return { isValid: true };
 }
 

@@ -176,9 +176,20 @@ export default function TeamDashboard({ team, onLogout }: TeamDashboardProps) {
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-2">
-                    <span className="text-xs font-mono font-bold text-[var(--accent-text)]">
-                      ROUND {round.number}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-mono font-bold text-[var(--accent-text)]">
+                        ROUND {round.number}
+                      </span>
+                      {round.submissionOpen ? (
+                        <span className="text-[10px] font-mono text-[var(--status-ready-text)] bg-[var(--status-ready-bg)] px-2 py-0.5 rounded-full border border-[var(--status-ready-border)] font-semibold">
+                          Open
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-mono text-[var(--status-error-text)] bg-[var(--status-error-bg)] px-2 py-0.5 rounded-full border border-[var(--status-error-border)] font-semibold">
+                          Closed
+                        </span>
+                      )}
+                    </div>
                     {sub ? (
                       <span className="inline-flex items-center gap-1 text-[10px] font-mono text-[var(--status-ready-text)] font-semibold bg-[var(--status-ready-bg)] px-2 py-0.5 rounded-full border border-[var(--status-ready-border)]">
                         <CheckCircle2 className="w-3 h-3" /> Submitted

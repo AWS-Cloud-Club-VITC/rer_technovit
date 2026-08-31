@@ -11,6 +11,7 @@ export const EVENT_CONFIG = {
       description:
         "Observe the target interface closely, retain key visual hierarchy and layout elements, and reconstruct the aesthetic structure accurately.",
       focus: "Observation & UI/UX Structure",
+      submissionOpen: false,
     },
     {
       number: 2,
@@ -18,6 +19,7 @@ export const EVENT_CONFIG = {
       description:
         "Inspect interactive behaviors, state transitions, and responsive mechanics to engineer functional parity with precision.",
       focus: "Logic, Mechanics & Interactions",
+      submissionOpen: true,
     },
   ],
 } as const;
