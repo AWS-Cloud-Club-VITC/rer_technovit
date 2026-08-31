@@ -181,8 +181,8 @@ export default function SubmissionForm({ onSuccess, latestByRound }: SubmissionF
             value={githubUrl}
             onChange={(e) => setGithubUrl(e.target.value)}
             placeholder={`https://github.com/your-team/round-${selectedRound}-solution`}
-            disabled={isSubmitting}
-            className="w-full px-4 py-3 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)] text-sm text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:border-[var(--input-focus)] focus:ring-2 focus:ring-[var(--accent)]/20 disabled:opacity-50 transition-all font-mono shadow-2xs"
+            disabled={true}
+            className="w-full px-4 py-3 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)] text-sm text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:border-[var(--input-focus)] focus:ring-2 focus:ring-[var(--accent)]/20 disabled:opacity-50 transition-all font-mono shadow-2xs cursor-not-allowed"
           />
         </div>
 
@@ -200,15 +200,15 @@ export default function SubmissionForm({ onSuccess, latestByRound }: SubmissionF
             value={demoVideoUrl}
             onChange={(e) => setDemoVideoUrl(e.target.value)}
             placeholder="https://drive.google.com/file/d/1fSr5gEoPzhGG3x_ijroiZGLvhYZIfQpz/view?usp=drive_link"
-            disabled={isSubmitting}
-            className="w-full px-4 py-3 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)] text-sm text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:border-[var(--input-focus)] focus:ring-2 focus:ring-[var(--accent)]/20 disabled:opacity-50 transition-all font-mono shadow-2xs"
+            disabled={true}
+            className="w-full px-4 py-3 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)] text-sm text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:border-[var(--input-focus)] focus:ring-2 focus:ring-[var(--accent)]/20 disabled:opacity-50 transition-all font-mono shadow-2xs cursor-not-allowed"
           />
         </div>
 
         <div className="pt-2">
           <button
             type="submit"
-            disabled={isSubmitting || !demoVideoUrl || !githubUrl}
+            disabled={true}
             className="w-full py-3.5 px-6 rounded-xl bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-bold text-sm tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg hover:scale-[1.01] active:scale-[0.99]"
           >
             {isSubmitting ? (
