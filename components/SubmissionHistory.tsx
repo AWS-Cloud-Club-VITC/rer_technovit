@@ -9,6 +9,7 @@ export interface SubmissionItem {
   roundNumber?: number;
   demoVideoUrl: string;
   githubUrl: string;
+  builderAlias?: string;
   submittedAt: string | Date;
   isLatest: boolean;
 }
@@ -177,6 +178,13 @@ export default function SubmissionHistory({ submissions, isLoading }: Submission
                     </a>
                   </div>
                 </div>
+
+                {sub.builderAlias && (
+                  <div className="mt-3 p-3 rounded-xl bg-[var(--accent-surface)] border border-[var(--accent-border)] text-xs font-mono flex items-center justify-between">
+                    <span className="text-[var(--foreground-muted)]">Builder Center Alias / Username:</span>
+                    <span className="font-bold text-[var(--accent-text)]">{sub.builderAlias}</span>
+                  </div>
+                )}
               </div>
             );
           })}

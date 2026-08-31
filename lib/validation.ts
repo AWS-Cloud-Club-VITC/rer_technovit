@@ -74,6 +74,20 @@ export function validateGitHubUrl(url?: string): ValidationResult {
 }
 
 /**
+ * Validates Builder Center Alias / Username
+ */
+export function validateBuilderAlias(alias?: string): ValidationResult {
+  if (!alias || typeof alias !== "string" || !alias.trim()) {
+    return { isValid: false, error: "Builder Center Alias / Username is required for Round 2." };
+  }
+  const trimmed = alias.trim();
+  if (trimmed.length < 2) {
+    return { isValid: false, error: "Builder Center Alias / Username must be at least 2 characters long." };
+  }
+  return { isValid: true };
+}
+
+/**
  * Validates array of team members
  */
 export function validateMembers(members?: TeamMember[]): ValidationResult {

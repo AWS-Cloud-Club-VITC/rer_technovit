@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { UploadCloud, Link as LinkIcon, AlertCircle, CheckCircle2, Loader2, Layers } from "lucide-react";
-import { validateGitHubUrl, validateDemoVideoUrl } from "@/lib/validation";
+import { UploadCloud, Link as LinkIcon, AlertCircle, CheckCircle2, Loader2, Layers, User } from "lucide-react";
+import { validateGitHubUrl, validateDemoVideoUrl, validateBuilderAlias } from "@/lib/validation";
 import { EVENT_CONFIG } from "@/lib/config";
 import type { SubmissionItem } from "./SubmissionHistory";
 
@@ -28,6 +28,7 @@ export default function SubmissionForm({ onSuccess, latestByRound }: SubmissionF
   const [selectedRound, setSelectedRound] = useState<number>(defaultRound);
   const [githubUrl, setGithubUrl] = useState("");
   const [demoVideoUrl, setDemoVideoUrl] = useState("");
+  const [builderAlias, setBuilderAlias] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -44,9 +45,11 @@ export default function SubmissionForm({ onSuccess, latestByRound }: SubmissionF
     if (existing) {
       setGithubUrl(existing.githubUrl);
       setDemoVideoUrl(existing.demoVideoUrl);
+      setBuilderAlias(existing.builderAlias || "");
     } else {
       setGithubUrl("");
       setDemoVideoUrl("");
+      setBuilderAlias("");
     }
   };
 
@@ -72,6 +75,14 @@ export default function SubmissionForm({ onSuccess, latestByRound }: SubmissionF
       return;
     }
 
+    if (selectedRound === 2) {
+      const aliasVal = validateBuilderAlias(builderAlias);
+      if (!aliasVal.isValid) {
+        setErrorMessage(aliasVal.error || "Please enter your Builder Center alias or username.");
+        return;
+      }
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -82,6 +93,7 @@ export default function SubmissionForm({ onSuccess, latestByRound }: SubmissionF
           roundNumber: selectedRound,
           githubUrl: githubUrl.trim(),
           demoVideoUrl: demoVideoUrl.trim(),
+          builderAlias: builderAlias.trim(),
         }),
       });
 
@@ -192,6 +204,38 @@ export default function SubmissionForm({ onSuccess, latestByRound }: SubmissionF
           <div className="p-4 rounded-xl bg-[var(--status-ready-bg)] border border-[var(--status-ready-border)] flex items-start gap-3 text-xs text-[var(--status-ready-text)]">
             <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
             <span>{successMessage}</span>
+          </div>
+        )}
+
+        {selectedRound === 2 && (
+          <div>
+            <label className="block text-xs font-mono font-medium text-[var(--foreground)] mb-1 flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <User className="w-4 h-4 text-[var(--accent-text)]" />
+                <span>Builder Center Alias / Username <span className="text-[var(--status-error-text)]">*</span></span>
+              </span>
+            </label>
+            <p className="text-[11px] text-[#f59e0b] mb-2 font-mono leading-relaxed">
+              If you do not have one, create it at{" "}
+              <a
+                href="https://bit.ly/4wIFnvw"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:opacity-80 font-semibold"
+              >
+                https://bit.ly/4wIFnvw
+              </a>
+              .This is mandatory.
+            </p>
+            <input
+              type="text"
+              required={selectedRound === 2}
+              value={builderAlias}
+              onChange={(e) => setBuilderAlias(e.target.value)}
+              placeholder="Enter your Builder Center alias or username"
+              disabled={!isRoundOpen || isSubmitting}
+              className="w-full px-4 py-3 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)] text-sm text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:border-[var(--input-focus)] focus:ring-2 focus:ring-[var(--accent)]/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-mono shadow-2xs"
+            />
           </div>
         )}
 
