@@ -31,7 +31,7 @@ export const EVENT_CONFIG = {
 
 export const APP_CONFIG = {
   minTeamMembers: 1,
-  maxTeamMembers: 4,
+  maxTeamMembers: 3,
   cookieName: "rer_session_token",
   sessionExpirySeconds: 60 * 60 * 24 * 7, // 7 days
 } as const;
