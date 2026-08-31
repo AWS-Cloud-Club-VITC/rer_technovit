@@ -19,13 +19,6 @@ export const EVENT_CONFIG = {
         "Inspect interactive behaviors, state transitions, and responsive mechanics to engineer functional parity with precision.",
       focus: "Logic, Mechanics & Interactions",
     },
-    {
-      number: 3,
-      name: "Roulette Challenge",
-      description:
-        "Adapt dynamically to randomized twists, hidden constraints, and rapid problem-solving requirements under high-stakes conditions.",
-      focus: "Adaptability, Speed & Problem Solving",
-    },
   ],
 } as const;
 

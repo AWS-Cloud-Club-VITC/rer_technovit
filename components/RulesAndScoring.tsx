@@ -55,7 +55,7 @@ export default function RulesAndScoring() {
                     03
                   </div>
                   <div className="leading-relaxed">
-                    <strong className="text-[var(--foreground)]">Artifact Submissions:</strong> Every submission requires a valid PDF file (architectural/design summary) and a reachable GitHub repository URL.
+                    <strong className="text-[var(--foreground)]">2-Round Submissions:</strong> Submissions are divided into 2 rounds (Round 1: Visual Recall and Round 2: Functionality Hunt). Each round requires a valid GitHub repository URL and a Google Drive video link.
                   </div>
                 </li>
 
@@ -117,21 +117,6 @@ export default function RulesAndScoring() {
                   </div>
                   <span className="text-xs font-mono text-[var(--status-ready-text)] font-bold px-2.5 py-1 rounded-md bg-[var(--status-ready-bg)] border border-[var(--status-ready-border)]">
                     Round 2 Focus
-                  </span>
-                </div>
-
-                <div className="p-4 rounded-xl bg-[var(--surface-secondary)] border border-[var(--border)] flex items-center justify-between hover:border-[var(--status-error-text)] transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center shadow-2xs">
-                      <AlertTriangle className="w-4 h-4 text-[var(--status-error-text)]" />
-                    </div>
-                    <div>
-                      <span className="text-xs sm:text-sm font-semibold text-[var(--foreground)] block">Roulette Challenge Adaptation</span>
-                      <span className="text-[11px] text-[var(--foreground-muted)]">Sudden constraints, debug speed & resilience</span>
-                    </div>
-                  </div>
-                  <span className="text-xs font-mono text-[var(--status-error-text)] font-bold px-2.5 py-1 rounded-md bg-[var(--status-error-bg)] border border-[var(--status-error-border)]">
-                    Round 3 Focus
                   </span>
                 </div>
               </div>

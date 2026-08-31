@@ -35,6 +35,7 @@ export interface SubmissionDocument {
   teamId: ObjectId;
   teamName: string;
   submissionNumber: number;
+  roundNumber: number; // 1 or 2
   demoVideoUrl: string;
   githubUrl: string;
   submittedAt: Date;
@@ -142,9 +143,9 @@ export async function getSubmissionsCollection(): Promise<Collection<SubmissionD
   const db = await getMongoDb();
   const collection = db.collection<SubmissionDocument>("submissions");
   
-  // Ensure compound index for fast queries by teamId and timestamp
+  // Ensure compound index for fast queries by teamId, roundNumber, and timestamp
   try {
-    await collection.createIndex({ teamId: 1, submittedAt: -1 });
+    await collection.createIndex({ teamId: 1, roundNumber: 1, submittedAt: -1 });
   } catch {
     // Ignore index creation collision
   }

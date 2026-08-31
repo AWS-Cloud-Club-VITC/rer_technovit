@@ -23,26 +23,12 @@ const ROUND_DETAILS = [
     icon: Layers,
     focus: EVENT_CONFIG.rounds[1].focus,
     description: EVENT_CONFIG.rounds[1].description,
+    isSpecial: true,
     criteria: [
       "Dynamic User Interactions & State Handlers",
       "Responsive Breakpoint Behavior",
       "Form Validations & Feedback Mechanics",
       "Clean Architectural Modularization",
-    ],
-  },
-  {
-    number: 3,
-    name: EVENT_CONFIG.rounds[2].name,
-    tag: "LIVE ADAPTATION",
-    icon: Shuffle,
-    focus: EVENT_CONFIG.rounds[2].focus,
-    description: EVENT_CONFIG.rounds[2].description,
-    isSpecial: true,
-    criteria: [
-      "Randomized Twist Implementation",
-      "Speed Under Sudden Constraints",
-      "Edge-Case Handling & Debugging",
-      "Team Coordination & Problem Solving",
     ],
   },
 ];
@@ -57,7 +43,7 @@ export default function Rounds() {
             <span>[ COMPETITION STRUCTURE ]</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[var(--foreground)] tracking-tight">
-            The Three Rounds
+            The Two Rounds
           </h2>
           <p className="mt-4 text-[var(--foreground-muted)] text-sm sm:text-base leading-relaxed">
             Progression through each round demands deep observation, sharp technical execution, and agility under pressure.
@@ -65,7 +51,7 @@ export default function Rounds() {
         </div>
 
         {/* Rounds Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {ROUND_DETAILS.map((round) => {
             const Icon = round.icon;
             return (

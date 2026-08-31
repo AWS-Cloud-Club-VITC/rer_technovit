@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { getSubmissionsCollection } from "@/lib/mongodb";
 import { getAuthenticatedTeam } from "@/lib/auth";
-import { validateGitHubUrl, validateDemoVideoUrl } from "@/lib/validation";
+import { validateGitHubUrl, validateDemoVideoUrl, validateRoundNumber } from "@/lib/validation";
 
 // GET: Fetch submission history for authenticated team
 export async function GET() {
@@ -21,20 +21,28 @@ export async function GET() {
       .sort({ submissionNumber: -1 })
       .toArray();
 
-    const formatted = teamSubmissions.map((sub, index) => ({
+    const formatted = teamSubmissions.map((sub) => ({
       id: sub._id!.toString(),
       submissionNumber: sub.submissionNumber,
+      roundNumber: sub.roundNumber || 1,
       demoVideoUrl: sub.demoVideoUrl,
       githubUrl: sub.githubUrl,
       submittedAt: sub.submittedAt,
-      isLatest: index === 0,
+      isLatest: sub.isLatest ?? false,
     }));
+
+    // Group latest submission by round
+    const latestByRound: Record<number, typeof formatted[0] | null> = {
+      1: formatted.find((s) => s.roundNumber === 1 && s.isLatest) || formatted.find((s) => s.roundNumber === 1) || null,
+      2: formatted.find((s) => s.roundNumber === 2 && s.isLatest) || formatted.find((s) => s.roundNumber === 2) || null,
+    };
 
     return NextResponse.json(
       {
         success: true,
         submissions: formatted,
         latestSubmission: formatted[0] || null,
+        latestByRound,
         totalSubmissions: formatted.length,
       },
       { status: 200 }
@@ -58,8 +66,14 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
+    const roundNumber = Number(body.roundNumber || 1);
     const githubUrl = body.githubUrl as string | null;
     const demoVideoUrl = body.demoVideoUrl as string | null;
+
+    const roundVal = validateRoundNumber(roundNumber);
+    if (!roundVal.isValid) {
+      return NextResponse.json({ success: false, error: roundVal.error }, { status: 400 });
+    }
 
     const githubVal = validateGitHubUrl(githubUrl ?? undefined);
     if (!githubVal.isValid) {
@@ -81,8 +95,9 @@ export async function POST(req: NextRequest) {
 
     const now = new Date();
 
+    // Mark previous submissions for this team and this round as isLatest: false
     await submissionsCollection.updateMany(
-      { teamId: teamObjectId },
+      { teamId: teamObjectId, roundNumber },
       { $set: { isLatest: false } }
     );
 
@@ -92,6 +107,7 @@ export async function POST(req: NextRequest) {
       teamId: teamObjectId,
       teamName: session.teamName,
       submissionNumber: nextSubmissionNumber,
+      roundNumber,
       demoVideoUrl: demoVideoUrl!.trim(),
       githubUrl: githubUrl!.trim(),
       submittedAt: now,
@@ -101,10 +117,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        message: `Submission #${nextSubmissionNumber} created successfully!`,
+        message: `Submission #${nextSubmissionNumber} for Round ${roundNumber} created successfully!`,
         submission: {
           id: newSubmissionId.toString(),
           submissionNumber: nextSubmissionNumber,
+          roundNumber,
           demoVideoUrl: demoVideoUrl!.trim(),
           githubUrl: githubUrl!.trim(),
           submittedAt: now,

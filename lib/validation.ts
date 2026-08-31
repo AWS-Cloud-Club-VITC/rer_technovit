@@ -1,4 +1,4 @@
-import { APP_CONFIG } from "./config";
+import { APP_CONFIG, EVENT_CONFIG } from "./config";
 import type { TeamMember } from "./mongodb";
 
 export interface ValidationResult {
@@ -173,3 +173,19 @@ export function validateDemoVideoUrl(url?: string): ValidationResult {
     };
   }
 }
+
+/**
+ * Validates competition round number (must be 1 or 2)
+ */
+export function validateRoundNumber(roundNumber?: unknown): ValidationResult {
+  const maxRounds = APP_CONFIG ? EVENT_CONFIG.rounds.length : 2;
+  const round = Number(roundNumber);
+  if (!roundNumber || isNaN(round) || !Number.isInteger(round) || round < 1 || round > maxRounds) {
+    return {
+      isValid: false,
+      error: `Invalid round number. Please select Round 1 or Round 2.`,
+    };
+  }
+  return { isValid: true };
+}
+

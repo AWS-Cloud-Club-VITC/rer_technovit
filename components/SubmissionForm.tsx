@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { UploadCloud, Link as LinkIcon, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { UploadCloud, Link as LinkIcon, AlertCircle, CheckCircle2, Loader2, Layers } from "lucide-react";
 import { validateGitHubUrl, validateDemoVideoUrl } from "@/lib/validation";
+import { EVENT_CONFIG } from "@/lib/config";
+import type { SubmissionItem } from "./SubmissionHistory";
 
 function GithubIcon({ className = "w-4 h-4" }: { className?: string }) {
   return (
@@ -18,14 +20,31 @@ function GithubIcon({ className = "w-4 h-4" }: { className?: string }) {
 
 interface SubmissionFormProps {
   onSuccess: () => void;
+  latestByRound?: Record<number, SubmissionItem | null>;
 }
 
-export default function SubmissionForm({ onSuccess }: SubmissionFormProps) {
+export default function SubmissionForm({ onSuccess, latestByRound }: SubmissionFormProps) {
+  const [selectedRound, setSelectedRound] = useState<number>(1);
   const [githubUrl, setGithubUrl] = useState("");
   const [demoVideoUrl, setDemoVideoUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const handleRoundChange = (roundNumber: number) => {
+    setSelectedRound(roundNumber);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    // Optionally populate form with existing latest submission for that round
+    const existing = latestByRound?.[roundNumber];
+    if (existing) {
+      setGithubUrl(existing.githubUrl);
+      setDemoVideoUrl(existing.demoVideoUrl);
+    } else {
+      setGithubUrl("");
+      setDemoVideoUrl("");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,6 +70,7 @@ export default function SubmissionForm({ onSuccess }: SubmissionFormProps) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          roundNumber: selectedRound,
           githubUrl: githubUrl.trim(),
           demoVideoUrl: demoVideoUrl.trim(),
         }),
@@ -62,9 +82,7 @@ export default function SubmissionForm({ onSuccess }: SubmissionFormProps) {
         throw new Error(data.error || "Submission failed. Please try again.");
       }
 
-      setSuccessMessage(data.message || "Submission created successfully!");
-      setGithubUrl("");
-      setDemoVideoUrl("");
+      setSuccessMessage(data.message || `Round ${selectedRound} submission saved successfully!`);
       onSuccess();
     } catch (err) {
       setErrorMessage((err as Error).message || "Submission failed. Please try again.");
@@ -80,10 +98,57 @@ export default function SubmissionForm({ onSuccess }: SubmissionFormProps) {
           <UploadCloud className="w-5 h-5 text-[var(--accent-text)]" />
         </div>
         <div>
-          <h3 className="text-lg font-bold text-[var(--foreground)]">New Project Submission</h3>
+          <h3 className="text-lg font-bold text-[var(--foreground)]">Project Submission (2 Rounds)</h3>
           <p className="text-xs text-[var(--foreground-muted)]">
-            Submit your GitHub repository link and demo video for evaluation.
+            Select a round and submit your GitHub repository link and Google Drive video link for evaluation.
           </p>
+        </div>
+      </div>
+
+      {/* Round Selection Tabs */}
+      <div className="mt-6">
+        <label className="block text-xs font-mono font-medium text-[var(--foreground)] mb-2 flex items-center gap-2">
+          <Layers className="w-4 h-4 text-[var(--accent-text)]" />
+          <span>Select Competition Round <span className="text-[var(--status-error-text)]">*</span></span>
+        </label>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          {EVENT_CONFIG.rounds.map((round) => {
+            const isSelected = selectedRound === round.number;
+            const hasSubmission = Boolean(latestByRound?.[round.number]);
+            return (
+              <button
+                key={round.number}
+                type="button"
+                onClick={() => handleRoundChange(round.number)}
+                className={`p-3 rounded-xl border text-left transition-all relative flex flex-col justify-between ${
+                  isSelected
+                    ? "bg-[var(--accent-surface)] border-[var(--accent-border)] ring-2 ring-[var(--accent)]/30"
+                    : "bg-[var(--surface-secondary)] border-[var(--border)] hover:border-[var(--accent)]/50"
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className={`text-xs font-mono font-bold ${isSelected ? "text-[var(--accent-text)]" : "text-[var(--foreground)]"}`}>
+                    Round {round.number}
+                  </span>
+                  {hasSubmission ? (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-mono text-[var(--status-ready-text)] font-semibold bg-[var(--status-ready-bg)] px-2 py-0.5 rounded-full border border-[var(--status-ready-border)]">
+                      <CheckCircle2 className="w-3 h-3" /> Submitted
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-mono text-[var(--foreground-muted)] bg-[var(--surface)] px-2 py-0.5 rounded-full border border-[var(--border)]">
+                      Pending
+                    </span>
+                  )}
+                </div>
+                <div className="text-[11px] font-semibold text-[var(--foreground)] mt-1 truncate">
+                  {round.name}
+                </div>
+                <div className="text-[10px] text-[var(--foreground-muted)] truncate">
+                  {round.focus}
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -106,7 +171,7 @@ export default function SubmissionForm({ onSuccess }: SubmissionFormProps) {
           <label className="block text-xs font-mono font-medium text-[var(--foreground)] mb-2 flex items-center justify-between">
             <span className="flex items-center gap-2">
               <GithubIcon className="w-4 h-4 text-[var(--accent-text)]" />
-              <span>GitHub Repository URL <span className="text-[var(--status-error-text)]">*</span></span>
+              <span>Round {selectedRound} GitHub Repository URL <span className="text-[var(--status-error-text)]">*</span></span>
             </span>
             <span className="text-[11px] text-[var(--foreground-muted)]">https://github.com/org/repo</span>
           </label>
@@ -115,7 +180,7 @@ export default function SubmissionForm({ onSuccess }: SubmissionFormProps) {
             required
             value={githubUrl}
             onChange={(e) => setGithubUrl(e.target.value)}
-            placeholder="https://github.com/your-team/reverse-engineering-roulette"
+            placeholder={`https://github.com/your-team/round-${selectedRound}-solution`}
             disabled={isSubmitting}
             className="w-full px-4 py-3 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)] text-sm text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:border-[var(--input-focus)] focus:ring-2 focus:ring-[var(--accent)]/20 disabled:opacity-50 transition-all font-mono shadow-2xs"
           />
@@ -125,7 +190,7 @@ export default function SubmissionForm({ onSuccess }: SubmissionFormProps) {
           <label className="block text-xs font-mono font-medium text-[var(--foreground)] mb-2 flex items-center justify-between">
             <span className="flex items-center gap-2">
               <LinkIcon className="w-4 h-4 text-[var(--accent-text)]" />
-              <span>Demo Video Link <span className="text-[var(--status-error-text)]">*</span></span>
+              <span>Round {selectedRound} Google Drive Video Link <span className="text-[var(--status-error-text)]">*</span></span>
             </span>
             <span className="text-[11px] text-[var(--foreground-muted)]">https://drive.google.com/...</span>
           </label>
@@ -149,20 +214,21 @@ export default function SubmissionForm({ onSuccess }: SubmissionFormProps) {
             {isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>SUBMITTING...</span>
+                <span>SUBMITTING ROUND {selectedRound}...</span>
               </>
             ) : (
               <>
                 <UploadCloud className="w-4 h-4" />
-                <span>SUBMIT REVISION</span>
+                <span>SUBMIT FOR ROUND {selectedRound}</span>
               </>
             )}
           </button>
           <p className="text-center text-[11px] font-mono text-[var(--foreground-muted)] mt-2.5">
-            Note: Submitting a new revision preserves past records while designating this upload as the active version for judging.
+            Note: Submitting updates the active links for Round {selectedRound} while retaining past history logs.
           </p>
         </div>
       </form>
     </div>
   );
 }
+

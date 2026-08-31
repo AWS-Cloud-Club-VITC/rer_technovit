@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Shield, GitBranch, Link as LinkIcon, CheckCircle2, LogOut, RefreshCw } from "lucide-react";
+import { Shield, GitBranch, Link as LinkIcon, CheckCircle2, LogOut, RefreshCw, Layers } from "lucide-react";
 import MemberList from "./MemberList";
 import SubmissionForm from "./SubmissionForm";
 import SubmissionHistory, { SubmissionItem } from "./SubmissionHistory";
 import type { TeamMember } from "@/lib/mongodb";
+import { EVENT_CONFIG } from "@/lib/config";
 
 interface TeamData {
   teamId: string;
@@ -21,6 +22,10 @@ interface TeamDashboardProps {
 
 export default function TeamDashboard({ team, onLogout }: TeamDashboardProps) {
   const [submissions, setSubmissions] = useState<SubmissionItem[]>([]);
+  const [latestByRound, setLatestByRound] = useState<Record<number, SubmissionItem | null>>({
+    1: null,
+    2: null,
+  });
   const [isLoadingSubmissions, setIsLoadingSubmissions] = useState(true);
 
   const fetchSubmissions = useCallback(async () => {
@@ -30,6 +35,9 @@ export default function TeamDashboard({ team, onLogout }: TeamDashboardProps) {
       const data = await res.json();
       if (res.ok && data.success) {
         setSubmissions(data.submissions || []);
+        if (data.latestByRound) {
+          setLatestByRound(data.latestByRound);
+        }
       }
     } catch {
       // Ignore network failure or show cached
@@ -46,6 +54,9 @@ export default function TeamDashboard({ team, onLogout }: TeamDashboardProps) {
         const data = await res.json();
         if (isMounted && res.ok && data.success) {
           setSubmissions(data.submissions || []);
+          if (data.latestByRound) {
+            setLatestByRound(data.latestByRound);
+          }
         }
       } catch {
         // Ignore network failure
@@ -62,7 +73,7 @@ export default function TeamDashboard({ team, onLogout }: TeamDashboardProps) {
     };
   }, []);
 
-  const latestSub = submissions[0] || null;
+  const completedRoundsCount = [1, 2].filter((r) => Boolean(latestByRound[r])).length;
 
   return (
     <div className="space-y-8 transition-colors duration-200">
@@ -121,16 +132,16 @@ export default function TeamDashboard({ team, onLogout }: TeamDashboardProps) {
           </div>
 
           <div className="p-3.5 rounded-xl bg-[var(--surface-secondary)] border border-[var(--border)] shadow-2xs">
-            <div className="text-[11px] font-mono text-[var(--foreground-muted)]">Total Submissions</div>
+            <div className="text-[11px] font-mono text-[var(--foreground-muted)]">Rounds Completed</div>
             <div className="text-lg font-bold font-mono text-[var(--accent-text)] mt-0.5">
-              {submissions.length} Revisions
+              {completedRoundsCount} / 2 Rounds
             </div>
           </div>
 
           <div className="p-3.5 rounded-xl bg-[var(--surface-secondary)] border border-[var(--border)] shadow-2xs">
-            <div className="text-[11px] font-mono text-[var(--foreground-muted)]">Active Revision</div>
-            <div className="text-lg font-bold font-mono text-[var(--status-ready-text)] mt-0.5 truncate">
-              {latestSub ? `Submission #${latestSub.submissionNumber}` : "None"}
+            <div className="text-[11px] font-mono text-[var(--foreground-muted)]">Total Submissions</div>
+            <div className="text-lg font-bold font-mono text-[var(--foreground)] mt-0.5">
+              {submissions.length} Revisions
             </div>
           </div>
 
@@ -144,57 +155,103 @@ export default function TeamDashboard({ team, onLogout }: TeamDashboardProps) {
         </div>
       </div>
 
-      {/* Latest Submission Spotlight Card (if any) */}
-      {latestSub && (
-        <div className="cyber-card rounded-2xl p-5 sm:p-6 border-l-4 border-l-[var(--accent)] shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 text-xs font-mono text-[var(--accent-text)] mb-1 font-semibold">
-                <span>ACTIVE SUBMISSION FOR JUDGES</span>
-                <span>•</span>
-                <span className="text-[var(--status-ready-text)]">VALID</span>
-              </div>
-              <h3 className="text-base sm:text-lg font-bold text-[var(--foreground)]">
-                Submission #{latestSub.submissionNumber}
-              </h3>
-              <p className="text-xs text-[var(--foreground-muted)] mt-0.5 font-mono">
-                Uploaded: {new Date(latestSub.submittedAt).toLocaleString()}
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <a
-                href={latestSub.githubUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[var(--surface-secondary)] border border-[var(--border)] hover:border-[var(--accent)] text-xs font-mono text-[var(--foreground)] transition-colors"
-              >
-                <GitBranch className="w-3.5 h-3.5 text-[var(--accent-text)]" />
-                <span>View GitHub Repo</span>
-              </a>
-
-              <a
-                href={latestSub.demoVideoUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[var(--surface-secondary)] border border-[var(--border)] hover:border-[var(--accent)] text-xs font-mono text-[var(--foreground)] transition-colors"
-              >
-                <LinkIcon className="w-3.5 h-3.5 text-[var(--status-ready-text)]" />
-                <span>Watch Demo</span>
-              </a>
-            </div>
-          </div>
+      {/* 2-Round Submissions Active Cards */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 text-xs font-mono text-[var(--foreground-muted)] font-semibold uppercase tracking-wider">
+          <Layers className="w-4 h-4 text-[var(--accent-text)]" />
+          <span>Active Submissions for Evaluation (2 Rounds)</span>
         </div>
-      )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {EVENT_CONFIG.rounds.map((round) => {
+            const sub = latestByRound[round.number];
+            return (
+              <div
+                key={round.number}
+                className={`cyber-card rounded-2xl p-5 border-t-4 transition-all flex flex-col justify-between ${
+                  sub
+                    ? "border-t-[var(--accent)] bg-[var(--surface)]"
+                    : "border-t-[var(--border)] bg-[var(--surface-secondary)]/50 opacity-80"
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <span className="text-xs font-mono font-bold text-[var(--accent-text)]">
+                      ROUND {round.number}
+                    </span>
+                    {sub ? (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-mono text-[var(--status-ready-text)] font-semibold bg-[var(--status-ready-bg)] px-2 py-0.5 rounded-full border border-[var(--status-ready-border)]">
+                        <CheckCircle2 className="w-3 h-3" /> Submitted
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-mono text-[var(--foreground-muted)] bg-[var(--surface-secondary)] px-2 py-0.5 rounded-full border border-[var(--border)]">
+                        Not Submitted
+                      </span>
+                    )}
+                  </div>
+
+                  <h4 className="text-sm font-bold text-[var(--foreground)]">{round.name}</h4>
+                  <p className="text-[11px] text-[var(--foreground-muted)] mt-0.5 line-clamp-2">
+                    {round.focus}
+                  </p>
+
+                  {sub && (
+                    <div className="mt-3 text-[10px] font-mono text-[var(--foreground-muted)]">
+                      Uploaded: {new Date(sub.submittedAt).toLocaleDateString()}
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-[var(--border)] flex flex-col gap-2">
+                  {sub ? (
+                    <>
+                      <a
+                        href={sub.githubUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-between px-3 py-1.5 rounded-lg bg-[var(--surface-secondary)] border border-[var(--border)] hover:border-[var(--accent)] text-xs font-mono text-[var(--foreground)] transition-colors truncate"
+                      >
+                        <span className="flex items-center gap-1.5 truncate">
+                          <GitBranch className="w-3.5 h-3.5 text-[var(--accent-text)] shrink-0" />
+                          <span className="truncate">GitHub Repo</span>
+                        </span>
+                        <span className="text-[10px] text-[var(--accent-text)] font-bold font-mono">→</span>
+                      </a>
+
+                      <a
+                        href={sub.demoVideoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-between px-3 py-1.5 rounded-lg bg-[var(--surface-secondary)] border border-[var(--border)] hover:border-[var(--accent)] text-xs font-mono text-[var(--foreground)] transition-colors truncate"
+                      >
+                        <span className="flex items-center gap-1.5 truncate">
+                          <LinkIcon className="w-3.5 h-3.5 text-[var(--status-ready-text)] shrink-0" />
+                          <span className="truncate">Drive Video</span>
+                        </span>
+                        <span className="text-[10px] text-[var(--status-ready-text)] font-bold font-mono">→</span>
+                      </a>
+                    </>
+                  ) : (
+                    <div className="text-center py-2 text-xs font-mono text-[var(--foreground-muted)]">
+                      Submission pending
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
       {/* Registered Members Roster (Read-Only) */}
       <MemberList members={team.members} />
 
-      {/* New Project Submission Form */}
-      <SubmissionForm onSuccess={fetchSubmissions} />
+      {/* New Project Submission Form (Supports 3 Rounds) */}
+      <SubmissionForm onSuccess={fetchSubmissions} latestByRound={latestByRound} />
 
       {/* Submission History Log */}
       <SubmissionHistory submissions={submissions} isLoading={isLoadingSubmissions} />
     </div>
   );
 }
+
