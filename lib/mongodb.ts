@@ -38,6 +38,7 @@ export interface SubmissionDocument {
   roundNumber: number; // 1 or 2
   demoVideoUrl: string;
   githubUrl: string;
+  builderAlias?: string;
   submittedAt: Date;
   isLatest: boolean;
 }
